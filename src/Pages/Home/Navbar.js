@@ -4,7 +4,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from '../../hooks/useAuth';
-
+import config from '../../Config'
 import {
   Bell,
   Search,
@@ -36,7 +36,7 @@ const Navbar = () => {
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
-        const response = await axios.get("${config.backendUrl}/api/announcements");
+        const response = await axios.get(`${config.backendUrl}/api/announcements`);
         setNotifications(response.data);
       } catch (error) {
         console.error(error);

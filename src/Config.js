@@ -1,7 +1,14 @@
 // src/config.js
 const config = {
-    backendUrl: 'http://localhost:5000',
+    backendUrl: 'https://server-set-production.up.railway.app',
   };
   
   export default config;
   
+
+// // src/config.js
+// const config = {
+//   backendUrl: process.env.REACT_APP_BACKEND_URL,
+// };
+
+// export default config;
