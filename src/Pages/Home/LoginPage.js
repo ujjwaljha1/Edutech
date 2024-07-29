@@ -17,29 +17,34 @@ const Login = () => {
 
   // client/src/pages/LoginPage.js
 
-const handleLogin = async (e) => {
-  e.preventDefault();
-  setError('');
-  setIsLoading(true);
-  try {
-    const response = await axios.post(`${config.backendUrl}/api/auth/login`, { email, password });
-    if (response.data.success) {
-      if (response.data.userId) {
-        setUserId(response.data.userId);
-      } else {
-        localStorage.setItem('token', response.data.token);
-        localStorage.setItem('isAdmin', response.data.user.isAdmin);
-        localStorage.setItem('isCEO', response.data.user.isCEO);
-        window.location.href = '/';
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setError('');
+    setIsLoading(true);
+    try {
+      const response = await axios.post(`${config.backendUrl}/api/auth/login`, { email, password });
+      if (response.data.success) {
+        if (response.data.userId) {
+          setUserId(response.data.userId);
+        } else {
+          const token = response.data.token;
+          localStorage.setItem('token', token);
+          localStorage.setItem('isAdmin', response.data.user.isAdmin);
+          localStorage.setItem('isCEO', response.data.user.isCEO);
+          
+          // Set the token as the default Authorization header for future requests
+          axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+          
+          window.location.href = '/';
+        }
       }
+    } catch (error) {
+      console.error(error);
+      setError('Invalid email or password. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
-  } catch (error) {
-    console.error(error);
-    setError('Invalid email or password. Please try again.');
-  } finally {
-    setIsLoading(false);
-  }
-};
+  };
 
   const handleVerificationSuccess = () => {
     window.location.href = '/';

@@ -1,10 +1,4 @@
 // src/config.js
-const config = {
-    backendUrl: 'https://server-set-production.up.railway.app',
-  };
-  
-  export default config;
-  
 
 // // src/config.js
 // const config = {
@@ -12,3 +6,10 @@ const config = {
 // };
 
 // export default config;
+
+
+const config = {
+  backendUrl: 'http://localhost:5000',
+};
+
+export default config;
