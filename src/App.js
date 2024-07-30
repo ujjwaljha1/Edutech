@@ -1,6 +1,5 @@
-import axios from 'axios';
 import React, { useState, useEffect } from 'react';
-import "./App.css";
+import axios from 'axios';
 import { BrowserRouter as Router, Route, Routes, Navigate, useLocation } from "react-router-dom";
 import Navbar from "./Pages/Home/Navbar";
 import Index from "./Pages/Index";
@@ -21,13 +20,14 @@ import Loader from './Loader';
 import AboutUs from './Pages/Home/AboutUs';
 import CareerPage from './Pages/CareerPage';
 import Notification from './hooks/Notification';
-
 import PremiumMembership from './PremiumMembership';
 import CouponGenerator from './CouponGenerator';
 import PremiumContentManager from './PremiumContentManager';
-
+import PremiumCategories from './PaidCategoryContent';
+import ChatSystem from './Pages/Chat/ChatSystem';
 
 axios.defaults.withCredentials = true;
+
 function App() {
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -105,7 +105,7 @@ function AppContent({ isAuthenticated, userRole }) {
         <Route path="/:slug" element={<CategoryPage />} />
         <Route path='/careers' element={<CareerPage/>}/>
         <Route path="/Login" element={<Login />} />
-        <Route path='/about'element={<AboutUs/>}/>
+        <Route path='/about' element={<AboutUs/>}/>
         <Route path="/Adminpage" element={<ProtectedRoute element={<AdminPage />} allowedRoles={['admin', 'ceo']} />} />
         <Route path="/Admin" element={<ProtectedRoute element={<AdminPanel />} allowedRoles={['admin', 'ceo']} />} />
         <Route path="/ceopanel" element={<ProtectedRoute element={<AddAdminForm />} allowedRoles={['ceo']} />} />
@@ -115,13 +115,14 @@ function AppContent({ isAuthenticated, userRole }) {
         <Route path="/hackathon" element={<ProtectedRoute element={<HackathonPage />} allowedRoles={['admin', 'ceo']} />} />
         <Route path="/user" element={<ViewUsers />} />
         <Route path="/createAnnouncement" element={<ProtectedRoute element={<AnnouncementForm />} allowedRoles={['admin', 'ceo']} />} />
-        {/* Add-Admin page, only accessible by CEO */}
         <Route path="/add-admin" element={<ProtectedRoute element={<AddAdminForm />} allowedRoles={['ceo']} />} />
         <Route path="/premium-membership" element={<PremiumMembership/>} />
+        <Route path="/my-course" element={<PremiumCategories/>}/>
         <Route path="/coupon-generator" element={<CouponGenerator/>} />
         <Route path="/premium-content-manager" element={<PremiumContentManager/>} />
       </Routes>
       <Footer/>
+      <ChatSystem userRole={userRole} />
     </div>
   );
 }

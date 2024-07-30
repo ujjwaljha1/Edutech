@@ -3,6 +3,8 @@ import axios from "axios";
 import DOMPurify from "dompurify";
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from "framer-motion";
+import { Link } from 'react-router-dom';
+
 import {
   FaEdit,
   FaTrash,

@@ -77,15 +77,33 @@ function CategoryPage() {
     }, 3000);
   }, []);
 
-  const sanitizeAndRenderContent = (htmlContent) => ({
-    __html: DOMPurify.sanitize(htmlContent, {
-      ADD_TAGS: ["math", "mrow", "mi", "mo", "mn", "msup", "mfrac", "img", "pre", "code"],
+  const sanitizeAndRenderContent = (htmlContent) => {
+    const clean = DOMPurify.sanitize(htmlContent, {
+      ADD_TAGS: ["math", "mrow", "mi", "mo", "mn", "msup", "mfrac", "img", "pre", "code", "h1", "h2", "h3", "h4", "h5", "h6"],
       ADD_ATTR: ["display", "xmlns", "src", "alt", "class", "style"],
-    }),
-  });
+    });
+    
+    const formattedContent = clean
+      .replace(/>\s+</g, '><')  // Remove whitespace between tags
+      .replace(/<h([1-6])(?:\s+[^>]*)?>([\s\S]*?)<\/h\1>/g, (match, level, content) => {
+        const sizes = {
+          1: 'text-4xl',
+          2: 'text-3xl',
+          3: 'text-2xl',
+          4: 'text-xl',
+          5: 'text-lg',
+          6: 'text-base'
+        };
+        return `<h${level} class="${sizes[level]} font-bold my-4 text-[#4A90E2]">${content.trim()}</h${level}>`;
+      });
+    
+    return { __html: formattedContent };
+  };
 
   const renderContent = (text) => {
-    const parts = text.split(/(\$\$[\s\S]*?\$\$|\$[\s\S]*?\$|<pre[\s\S]*?<\/pre>)/);
+    const cleanedText = text.replace(/\n\s*\n/g, '\n');
+    
+    const parts = cleanedText.split(/(\$\$[\s\S]*?\$\$|\$[\s\S]*?\$|<pre[\s\S]*?<\/pre>|<h[1-6][\s\S]*?<\/h[1-6]>)/);
     return parts.map((part, index) => {
       if (part.startsWith("$$") && part.endsWith("$$")) {
         return <MathJax key={index}>{`\\[${part.slice(2, -2)}\\]`}</MathJax>;
@@ -98,22 +116,88 @@ function CategoryPage() {
             dangerouslySetInnerHTML={sanitizeAndRenderContent(part)}
           />
         );
+      } else if (part.match(/<h[1-6][\s\S]*?<\/h[1-6]>/)) {
+        return (
+          <div
+            key={index}
+            dangerouslySetInnerHTML={sanitizeAndRenderContent(part)}
+          />
+        );
       } else {
         return (
-          <span key={index}>
-            {part.split("\n").map((line, i) => (
-              <React.Fragment key={i}>
-                {i > 0 && <br />}
-                <span
-                  dangerouslySetInnerHTML={sanitizeAndRenderContent(line)}
-                />
-              </React.Fragment>
-            ))}
-          </span>
+          <span key={index} dangerouslySetInnerHTML={sanitizeAndRenderContent(part)} />
         );
       }
     });
   };
+
+
+  // const renderContent = (text) => {
+  //   const parts = text.split(/(\$\$[\s\S]*?\$\$|\$[\s\S]*?\$|<pre[\s\S]*?<\/pre>)/);
+  //   return parts.map((part, index) => {
+  //     if (part.startsWith("$$") && part.endsWith("$$")) {
+  //       return <MathJax key={index}>{`\\[${part.slice(2, -2)}\\]`}</MathJax>;
+  //     } else if (part.startsWith("$") && part.endsWith("$")) {
+  //       return <MathJax key={index}>{`\\(${part.slice(1, -1)}\\)`}</MathJax>;
+  //     } else if (part.startsWith("<pre") && part.endsWith("</pre>")) {
+  //       return (
+  //         <div
+  //           key={index}
+  //           dangerouslySetInnerHTML={sanitizeAndRenderContent(part)}
+  //         />
+  //       );
+  //     } else {
+  //       return (
+  //         <span key={index}>
+  //           {part.split("\n").map((line, i) => (
+  //             <React.Fragment key={i}>
+  //               {i > 0 && <br />}
+  //               <span
+  //                 dangerouslySetInnerHTML={sanitizeAndRenderContent(line)}
+  //               />
+  //             </React.Fragment>
+  //           ))}
+  //         </span>
+  //       );
+  //     }
+  //   });
+  // };
+
+  // const renderContent = (text) => {
+  //   const parts = text.split(/(\$\$[\s\S]*?\$\$|\$[\s\S]*?\$|<pre[\s\S]*?<\/pre>|<h[1-6]>[\s\S]*?<\/h[1-6]>)/);
+  //   return parts.map((part, index) => {
+  //     if (part.startsWith("$$") && part.endsWith("$$")) {
+  //       return <MathJax key={index}>{`\\[${part.slice(2, -2)}\\]`}</MathJax>;
+  //     } else if (part.startsWith("$") && part.endsWith("$")) {
+  //       return <MathJax key={index}>{`\\(${part.slice(1, -1)}\\)`}</MathJax>;
+  //     } else if (part.startsWith("<pre") && part.endsWith("</pre>")) {
+  //       return (
+  //         <div
+  //           key={index}
+  //           dangerouslySetInnerHTML={sanitizeAndRenderContent(part)}
+  //         />
+  //       );
+  //     } else if (part.match(/<h[1-6]>[\s\S]*?<\/h[1-6]>/)) {
+  //       const level = part.match(/<h([1-6])>/)[1];
+  //       const content = part.replace(/<\/?h[1-6]>/g, '');
+  //       const HeadingTag = `h${level}`;
+  //       return <HeadingTag key={index} className={`text-${7-level}xl font-bold my-4 text-[#4A90E2]`}>{content}</HeadingTag>;
+  //     } else {
+  //       return (
+  //         <span key={index}>
+  //           {part.split("\n").map((line, i) => (
+  //             <React.Fragment key={i}>
+  //               {i > 0 && <br />}
+  //               <span
+  //                 dangerouslySetInnerHTML={sanitizeAndRenderContent(line)}
+  //               />
+  //             </React.Fragment>
+  //           ))}
+  //         </span>
+  //       );
+  //     }
+  //   });
+  // };
 
   const handleContentClick = (content) => {
     setSelectedContent(content);
@@ -378,7 +462,7 @@ function CategoryPage() {
                 animate={{ x: 0, opacity: 1 }}
                 exit={{ x: -300, opacity: 0 }}
                 transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                className="md:col-span-1 bg-white p-6 rounded-lg shadow-lg sticky top-20"
+                className="md:col-span-1 bg-white p-6 rounded-lg shadow-lg sticky top-20 max-h-[calc(100vh-5rem)] overflow-y-auto"
               >
                 <h2 className="text-2xl font-semibold mb-4 text-[#4A90E2]">
                   Content

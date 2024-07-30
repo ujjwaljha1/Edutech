@@ -4,6 +4,8 @@ import DOMPurify from "dompurify";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaEdit, FaTrash, FaChevronDown, FaChevronUp, FaPlus, FaInfo } from "react-icons/fa";
 import config from '../Config'
+import MathJax from "react-mathjax2";
+
 function AdminPanel() {
   const [categories, setCategories] = useState([]);
   const [newCategory, setNewCategory] = useState({
@@ -76,9 +78,27 @@ function AdminPanel() {
     }
   };
 
+  const processContent = (content) => {
+    if (typeof content === 'string') {
+      // Check if content is HTML
+      if (content.trim().startsWith('<') && content.trim().endsWith('>')) {
+        return { type: 'html', content: sanitizeHtml(content) };
+      }
+      // Check if content is LaTeX
+      if (content.includes('\\(') || content.includes('\\[')) {
+        return { type: 'latex', content };
+      }
+    } else if (typeof content === 'object') {
+      // Process form-like structures
+      return { type: 'form', content };
+    }
+    // Default to plain text
+    return { type: 'text', content };
+  };
+
   const sanitizeHtml = (html) => {
     return DOMPurify.sanitize(html, {
-      ADD_TAGS: ["math", "mrow", "mi", "mo", "mn", "msup", "mfrac", "img"],
+      ADD_TAGS: ["math", "mrow", "mi", "mo", "mn", "msup", "mfrac", "img", "table", "tr", "td", "th"],
       ADD_ATTR: ["display", "xmlns", "src", "alt"],
     });
   };
@@ -108,28 +128,87 @@ function AdminPanel() {
     }
   };
 
+  // const handleContentSubmit = async (e) => {
+  //   e.preventDefault();
+  //   try {
+  //     const contentToSubmit = editingContent || newContent;
+  //     const sanitizedDescription = sanitizeHtml(contentToSubmit.description);
+  //     let dataToSend = {
+  //       ...contentToSubmit,
+  //       description: sanitizedDescription,
+  //       category: contentToSubmit.categoryId,
+  //     };
+  //     if (contentToSubmit.type === "quiz") {
+  //       if (quizEntryMethod === "json") {
+  //         dataToSend.quizJson = quizJson;
+  //       } else {
+  //         dataToSend.questions = contentToSubmit.questions;
+  //       }
+  //     }
+  //     if (editingContent) {
+  //       await axios.put(
+  //         `${config.backendUrl}/api/content/${editingContent._id}`,
+  //         dataToSend
+  //       );
+  //       setEditingContent(null);
+  //     } else {
+  //       await axios.post(`${config.backendUrl}/api/content`, dataToSend);
+  //       setNewContent({
+  //         title: "",
+  //         description: "",
+  //         categoryId: "",
+  //         type: "notes",
+  //         questions: [],
+  //       });
+  //       setQuizJson("");
+  //     }
+  //     fetchContent();
+  //   } catch (error) {
+  //     console.error(
+  //       "Error submitting content:",
+  //       error.response?.data || error.message
+  //     );
+  //   }
+  // };
+
   const handleContentSubmit = async (e) => {
     e.preventDefault();
     try {
       const contentToSubmit = editingContent || newContent;
-      const sanitizedDescription = sanitizeHtml(contentToSubmit.description);
+      
       let dataToSend = {
         ...contentToSubmit,
-        description: sanitizedDescription,
         category: contentToSubmit.categoryId,
+        description: processContent(contentToSubmit.description).content,
       };
+
       if (contentToSubmit.type === "quiz") {
         if (quizEntryMethod === "json") {
-          dataToSend.quizJson = quizJson;
+          try {
+            const parsedJson = JSON.parse(quizJson);
+            dataToSend.questions = parsedJson.map(q => ({
+              ...q,
+              question: processContent(q.question).content,
+              options: q.options.map(o => processContent(o).content),
+              explanation: processContent(q.explanation).content,
+            }));
+          } catch (jsonError) {
+            console.error("JSON parsing error:", jsonError);
+            alert("Error parsing JSON. Please check the format and try again.");
+            return;
+          }
         } else {
-          dataToSend.questions = contentToSubmit.questions;
+          dataToSend.questions = contentToSubmit.questions.map(q => ({
+            ...q,
+            question: processContent(q.question).content,
+            options: q.options.map(o => processContent(o).content),
+            explanation: processContent(q.explanation).content,
+          }));
         }
       }
+
       if (editingContent) {
-        await axios.put(
-          `${config.backendUrl}/api/content/${editingContent._id}`,
-          dataToSend
-        );
+        await axios.put(`${config.backendUrl}/api/content/${editingContent._id}`, dataToSend);
         setEditingContent(null);
       } else {
         await axios.post(`${config.backendUrl}/api/content`, dataToSend);
@@ -144,12 +223,18 @@ function AdminPanel() {
       }
       fetchContent();
     } catch (error) {
-      console.error(
-        "Error submitting content:",
-        error.response?.data || error.message
-      );
+      console.error("Error submitting content:", error.response?.data || error.message);
+      alert("Error submitting content. Please try again.");
     }
   };
+  
+  const renderMathContent = (content) => (
+    <MathJax.Context input="tex">
+      <div>
+        <MathJax.Node>{content}</MathJax.Node>
+      </div>
+    </MathJax.Context>
+  );
 
   const handleDelete = async (id, type) => {
     try {
@@ -243,6 +328,97 @@ function AdminPanel() {
     </motion.div>
   );
 
+  // const renderContentItem = (item) => (
+  //   <motion.div
+  //     key={item._id}
+  //     layout
+  //     initial={{ opacity: 0 }}
+  //     animate={{ opacity: 1 }}
+  //     exit={{ opacity: 0 }}
+  //     className="bg-white shadow-md rounded-lg p-4 mb-4"
+  //   >
+  //     <div className="flex justify-between items-center">
+  //       <h3 className="text-lg font-semibold">{item.title}</h3>
+  //       <div className="flex space-x-2">
+  //         <button
+  //           onClick={() => toggleExpandContent(item._id)}
+  //           className="text-gray-500 hover:text-blue-500 transition-colors duration-200"
+  //         >
+  //           {expandedContent === item._id ? <FaChevronUp /> : <FaChevronDown />}
+  //         </button>
+  //         <button
+  //           onClick={() => handleEdit(item, "content")}
+  //           className="text-yellow-500 hover:text-yellow-600 transition-colors duration-200"
+  //         >
+  //           <FaEdit />
+  //         </button>
+  //         <button
+  //           onClick={() => handleDelete(item._id, "content")}
+  //           className="text-red-500 hover:text-red-600 transition-colors duration-200"
+  //         >
+  //           <FaTrash />
+  //         </button>
+  //       </div>
+  //     </div>
+  //     <AnimatePresence>
+  //       {expandedContent === item._id && (
+  //         <motion.div
+  //           initial={{ opacity: 0, height: 0 }}
+  //           animate={{ opacity: 1, height: "auto" }}
+  //           exit={{ opacity: 0, height: 0 }}
+  //           className="mt-4"
+  //         >
+  //           <p className="text-gray-600 mb-2">
+  //             {item.type === "notes" ? (
+  //               <div dangerouslySetInnerHTML={{ __html: item.description }} />
+  //             ) : (
+  //               <div>
+  //                 <p className="font-semibold">Number of questions: {item.questions ? item.questions.length : "N/A"}</p>
+  //                 {/* You can add a preview of quiz questions here if needed */}
+  //               </div>
+  //             )}
+  //           </p>
+  //           <p className="text-sm text-gray-500">
+  //             Category: {item.category ? item.category.title : "N/A"}
+  //           </p>
+  //           <p className="text-sm text-gray-500">Type: {item.type}</p>
+  //         </motion.div>
+  //       )}
+  //     </AnimatePresence>
+  //   </motion.div>
+  // );
+  const renderContent = (content) => {
+    const processed = processContent(content);
+    switch (processed.type) {
+      case 'html':
+        return <div dangerouslySetInnerHTML={{ __html: processed.content }} />;
+      case 'latex':
+        return (
+          <MathJax.Context input="tex">
+            <div>
+              <MathJax.Node>{processed.content}</MathJax.Node>
+            </div>
+          </MathJax.Context>
+        );
+      case 'form':
+        return (
+          <div>
+            <p><strong>Question:</strong> {renderContent(processed.content.question)}</p>
+            <p><strong>Options:</strong></p>
+            <ul>
+              {processed.content.options.map((option, index) => (
+                <li key={index}>{renderContent(option)}</li>
+              ))}
+            </ul>
+            <p><strong>Correct Answer:</strong> {processed.content.correctAnswer}</p>
+            <p><strong>Explanation:</strong> {renderContent(processed.content.explanation)}</p>
+          </div>
+        );
+      default:
+        return <p>{processed.content}</p>;
+    }
+  };
+
   const renderContentItem = (item) => (
     <motion.div
       key={item._id}
@@ -283,17 +459,19 @@ function AdminPanel() {
             exit={{ opacity: 0, height: 0 }}
             className="mt-4"
           >
-            <p className="text-gray-600 mb-2">
-              {item.type === "notes" ? (
-                <div dangerouslySetInnerHTML={{ __html: item.description }} />
-              ) : (
-                <div>
-                  <p className="font-semibold">Number of questions: {item.questions ? item.questions.length : "N/A"}</p>
-                  {/* You can add a preview of quiz questions here if needed */}
-                </div>
-              )}
-            </p>
-            <p className="text-sm text-gray-500">
+            {item.type === "notes" ? (
+              renderContent(item.description)
+            ) : (
+              <div>
+                <p className="font-semibold">Number of questions: {item.questions ? item.questions.length : "N/A"}</p>
+                {item.questions && item.questions.map((question, index) => (
+                  <div key={index} className="mt-2">
+                    {renderContent(question)}
+                  </div>
+                ))}
+              </div>
+            )}
+            <p className="text-sm text-gray-500 mt-2">
               Category: {item.category ? item.category.title : "N/A"}
             </p>
             <p className="text-sm text-gray-500">Type: {item.type}</p>
@@ -302,7 +480,6 @@ function AdminPanel() {
       </AnimatePresence>
     </motion.div>
   );
-
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-8">Admin Panel</h1>

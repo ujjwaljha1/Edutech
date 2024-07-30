@@ -9,7 +9,7 @@
 
 
 const config = {
-  backendUrl: 'https://server-set-production.up.railway.app',
+  backendUrl: 'http://localhost:5000',
 };
 
 export default config;
