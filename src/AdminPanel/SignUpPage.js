@@ -210,7 +210,6 @@ const Signup = () => {
               {renderInput("educationEndDate", "Education End Date", <FaGraduationCap className="text-blue-500" />, "date")}
             </div>
             {renderInput("currentGPA", "Current GPA", <FaGraduationCap className="text-blue-500" />, "number")}
-            
             {formData.workExperiences.map((exp, index) => (
               <div key={index} className="border p-4 rounded-md bg-gray-50">
                 <h3 className="font-bold mb-2 text-gray-800">Work Experience {index + 1}</h3>
