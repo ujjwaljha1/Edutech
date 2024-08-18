@@ -5,7 +5,7 @@ import axios from 'axios';
 import { motion } from 'framer-motion';
 import { FaEnvelope, FaLock, FaSignInAlt } from 'react-icons/fa';
 import config from '../Config'
-import OTPVerification from '../components/OTPVerification';
+import OTPVerification from '../hooks/OTPVerification';
 
 const Login = () => {
   const [email, setEmail] = useState('');

@@ -54,27 +54,27 @@ const Course = () => {
   };
 
   return (
-    <section ref={sectionRef} className="py-20 overflow-hidden bg-gradient-to-br from-pink-100 to-red-100">
+    <section ref={sectionRef} className="py-20 overflow-hidden bg-gradient-to-br from-blue-50 to-white">
       <div className="container mx-auto px-4">
-        <h2 className="text-5xl font-bold text-center mb-12 text-red-800">Most Visited Courses</h2>
+        <h2 className="text-4xl font-bold text-center mb-12 text-blue-900">Popular Courses</h2>
         <div className="relative overflow-hidden">
           <div ref={cardsContainerRef} className="flex space-x-8 py-8">
             {courses.map((course, index) => (
               <div
                 key={`${course.id}-${index}`}
-                className="flex-shrink-0 w-80 bg-white bg-opacity-70 rounded-xl overflow-hidden transform transition-all duration-300 cursor-pointer backdrop-filter backdrop-blur-lg"
+                className="flex-shrink-0 w-80 bg-white rounded-xl overflow-hidden shadow-lg transform transition-all duration-300 hover:shadow-xl cursor-pointer"
                 onClick={() => handleCardClick(course.path)}
               >
                 <div className="relative">
                   <img src={course.image} alt={course.title} className="w-full h-48 object-cover" />
-                  <div className="tag absolute top-4 right-4 bg-red-500 text-white text-xs px-2 py-1 rounded-full">
-                    Most Read
+                  <div className="tag absolute top-4 right-4 bg-blue-600 text-white text-xs px-2 py-1 rounded-full">
+                    Popular
                   </div>
                 </div>
                 <div className="p-6">
-                  <FontAwesomeIcon icon={course.icon} className="text-3xl text-red-500 mb-4" />
-                  <h3 className="text-xl font-semibold mb-2 text-red-800">{course.title}</h3>
-                  <p className="text-red-700">Embark on a journey of knowledge and discovery.</p>
+                  <FontAwesomeIcon icon={course.icon} className="text-3xl text-blue-600 mb-4" />
+                  <h3 className="text-xl font-semibold mb-2 text-blue-900">{course.title}</h3>
+                  <p className="text-blue-700">Expand your knowledge and skills in this exciting course.</p>
                 </div>
               </div>
             ))}
