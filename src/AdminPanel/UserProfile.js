@@ -5,6 +5,9 @@ import { motion } from 'framer-motion';
 import { FaLinkedin, FaGithub, FaFileUpload } from 'react-icons/fa';
 import collegeData from './college.json';
 import config from '../Config'
+import api from "../api"
+
+
 const UserProfile = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
@@ -27,13 +30,12 @@ const UserProfile = () => {
 
   const fetchUserProfile = async () => {
     try {
-      // Remove token handling
-      const response = await axios.get(`${config.backendUrl}/api/users/profile`);
+      const response = await api.get(`${config.backendUrl}/api/users/profile`);
       setUser(response.data);
       setFormData(response.data);
     } catch (error) {
-      console.error('Error fetching user profile:', error);
-      // Remove navigation to login
+      console.error('Error fetching user profile:', error.response?.data || error.message);
+      // Handle the error appropriately, e.g., show an error message to the user
     }
   };
   const handleSubmit = async (e) => {
@@ -50,7 +52,7 @@ const UserProfile = () => {
         }
       }
 
-      await axios.put('${config.backendUrl}/api/users/profile', formDataToSend, {
+      await api.put('${config.backendUrl}/api/users/profile', formDataToSend, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }

@@ -1,192 +1,231 @@
-
-// import React, { useState, useEffect, useRef, useCallback } from "react";
+// import React, { useState, useEffect, useCallback } from "react";
 // import { useParams, useNavigate } from "react-router-dom";
 // import axios from "axios";
 // import DOMPurify from "dompurify";
-// import { useDarkMode } from "../context/ThemeContext";
 // import { MathJax, MathJaxContext } from "better-react-mathjax";
 // import { motion, AnimatePresence } from "framer-motion";
-// import {
-//   Search,
-//   ChevronLeft,
-//   ChevronRight,
-//   Menu,
-//   X,
-//   CheckCircle,
-//   XCircle,
-//   Briefcase,
-//   Code,
-//   BookOpen,
-//   Award,
-// } from "lucide-react";
-// import { Carousel } from "react-responsive-carousel";
-// import "react-responsive-carousel/lib/styles/carousel.min.css";
+// import config from '../../Config';
+// import { Search, ChevronDown, ChevronUp, Copy, Check } from "lucide-react";
 // import "tailwindcss/tailwind.css";
-// import { TailSpin } from "react-loader-spinner";
-// import confetti from "canvas-confetti";
-// import config from "../Config";
+// import ReactMarkdown from 'react-markdown';
+// import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+// import { tomorrow } from 'react-syntax-highlighter/dist/esm/styles/prism';
+// import rehypeRaw from 'rehype-raw';
+// import remarkMath from 'remark-math';
+// import rehypeKatex from 'rehype-katex';
+// import 'katex/dist/katex.min.css';
 
 // function CategoryPage() {
 //   const { slug } = useParams();
 //   const navigate = useNavigate();
-//   const { darkMode } = useDarkMode();
 //   const [category, setCategory] = useState(null);
+//   const [subcategories, setSubcategories] = useState([]);
 //   const [content, setContent] = useState([]);
 //   const [selectedContent, setSelectedContent] = useState(null);
 //   const [error, setError] = useState(null);
 //   const [contentSearchTerm, setContentSearchTerm] = useState("");
 //   const [quizSearchTerm, setQuizSearchTerm] = useState("");
-//   const [placements, setPlacements] = useState([]);
-//   const [hackathons, setHackathons] = useState([]);
-//   const [sidebarOpen, setSidebarOpen] = useState(false);
-//   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
 //   const [userAnswers, setUserAnswers] = useState({});
 //   const [quizSubmitted, setQuizSubmitted] = useState(false);
 //   const [score, setScore] = useState(0);
-//   const quizContainerRef = useRef(null);
 //   const [showExplanation, setShowExplanation] = useState({});
 //   const [alertMessage, setAlertMessage] = useState(null);
-//   const [movingEmojis, setMovingEmojis] = useState([]);
-//   const [currentPage, setCurrentPage] = useState(1);
-// const questionsPerPage = 15;
+//   const [copiedCode, setCopiedCode] = useState(null);
+//   const [expandedSubcategories, setExpandedSubcategories] = useState({});
+//   const [loading, setLoading] = useState(true);
+
 //   useEffect(() => {
 //     const fetchData = async () => {
 //       try {
-//         const [categoryRes, placementsRes, hackathonsRes] = await Promise.all([
-//           axios.get(`${config.backendUrl}/api/categories/slug/${slug}`),
-//           axios.get("${config.backendUrl}/api/placements"),
-//           axios.get("${config.backendUrl}/api/hackathons"),
-//         ]);
+//         setLoading(true);
+//         const categoryRes = await axios.get(`${config.backendUrl}/api/categories/slug/${slug}`);
 //         setCategory(categoryRes.data);
-//         const contentRes = await axios.get(
-//           `${config.backendUrl}/api/content/category/${categoryRes.data._id}`
-//         );
+        
+//         const subcategoriesRes = await axios.get(`${config.backendUrl}/api/subcategories/category/${categoryRes.data._id}`);
+//         setSubcategories(subcategoriesRes.data);
+        
+//         const contentRes = await axios.get(`${config.backendUrl}/api/content/category/${categoryRes.data._id}`);
 //         setContent(contentRes.data);
-//         setPlacements(placementsRes.data);
-//         setHackathons(hackathonsRes.data);
+        
 //         document.title = categoryRes.data.title;
 //       } catch (error) {
 //         console.error("Error fetching data:", error);
-//         setError(
-//           error.response?.status === 404
-//             ? "Category not found"
-//             : "An error occurred while fetching data"
-//         );
+//         setError(error.response?.status === 404 ? "Category not found" : "An error occurred while fetching data");
+//       } finally {
+//         setLoading(false);
 //       }
 //     };
 //     fetchData();
 //   }, [slug]);
 
+//   const toggleSubcategory = (subcategoryId) => {
+//     setExpandedSubcategories(prev => ({
+//       ...prev,
+//       [subcategoryId]: !prev[subcategoryId]
+//     }));
+//   };
+
+//   const renderSidebar = () => (
+//     <div className="bg-white p-4 rounded-lg shadow-md">
+//       <h2 className="text-xl font-semibold mb-4 text-gray-800">Content</h2>
+//       <div className="mb-4">
+//         <div className="relative">
+//           <input
+//             type="text"
+//             placeholder="Search content..."
+//             value={contentSearchTerm}
+//             onChange={(e) => setContentSearchTerm(e.target.value)}
+//             className="w-full px-3 py-2 pr-8 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+//           />
+//           <Search className="absolute right-2 top-2.5 text-gray-400" size={18} />
+//         </div>
+//       </div>
+//       <div className="space-y-2">
+//         {subcategories.map((subcategory) => (
+//           <div key={subcategory._id} className="border-b border-gray-200 pb-2">
+//             <button
+//               onClick={() => toggleSubcategory(subcategory._id)}
+//               className="w-full flex justify-between items-center py-2 text-left text-gray-700 hover:text-blue-600 transition-colors"
+//             >
+//               <span>{subcategory.title}</span>
+//               {expandedSubcategories[subcategory._id] ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+//             </button>
+//             <AnimatePresence>
+//               {expandedSubcategories[subcategory._id] && (
+//                 <motion.div
+//                   initial={{ opacity: 0, height: 0 }}
+//                   animate={{ opacity: 1, height: "auto" }}
+//                   exit={{ opacity: 0, height: 0 }}
+//                   transition={{ duration: 0.3 }}
+//                 >
+//                   {content
+//                     .filter((item) => item.subcategory === subcategory._id)
+//                     .filter((item) => item.title.toLowerCase().includes(contentSearchTerm.toLowerCase()))
+//                     .map((item) => (
+//                       <button
+//                         key={item._id}
+//                         onClick={() => handleContentClick(item)}
+//                         className={`w-full text-left py-1 px-4 text-sm ${
+//                           selectedContent && selectedContent._id === item._id
+//                             ? "text-blue-600 font-semibold"
+//                             : "text-gray-600 hover:text-blue-600"
+//                         }`}
+//                       >
+//                         {item.title}
+//                       </button>
+//                     ))}
+//                 </motion.div>
+//               )}
+//             </AnimatePresence>
+//           </div>
+//         ))}
+//       </div>
+//     </div>
+//   );
+  
+//   const mathJaxConfig = {
+//     loader: { load: ["input/tex", "output/svg"] },
+//     tex: {
+//       inlineMath: [['$', '$'], ['\\(', '\\)']],
+//       displayMath: [['$$', '$$'], ['\\[', '\\]']],
+//       processEscapes: true,
+//     },
+//   };
+
+
 //   const showAlert = useCallback((text, type) => {
 //     setAlertMessage({ text, type });
-//     setTimeout(() => {
-//       setAlertMessage(null);
-//     }, 3000);
+//     setTimeout(() => setAlertMessage(null), 3000);
 //   }, []);
 
-//   const sanitizeAndRenderContent = (htmlContent) => ({
-//     __html: DOMPurify.sanitize(htmlContent, {
-//       ADD_TAGS: ["math", "mrow", "mi", "mo", "mn", "msup", "mfrac", "img", "pre", "code"],
-//       ADD_ATTR: ["display", "xmlns", "src", "alt", "class", "style"],
-//     }),
-//   });
-//   useEffect(() => {
-//     if (darkMode) {
-//       const emojis = ['🚀', '🌟', '🔬', '🎵', '🌈', '🌍', '🧠'];
-//       const newEmojis = Array(50).fill().map(() => ({  // Increased to 50 emojis
-//         emoji: emojis[Math.floor(Math.random() * emojis.length)],
-//         x: Math.random() * window.innerWidth,
-//         y: Math.random() * window.innerHeight,
-//         vx: (Math.random() - 0.5) * 4,  // Increased speed
-//         vy: (Math.random() - 0.5) * 4,  // Increased speed
-//       }));
-//       setMovingEmojis(newEmojis);
-  
-//       const moveEmojis = () => {
-//         setMovingEmojis(prevEmojis => prevEmojis.map(emoji => ({
-//           ...emoji,
-//           x: (emoji.x + emoji.vx + window.innerWidth) % window.innerWidth,
-//           y: (emoji.y + emoji.vy + window.innerHeight) % window.innerHeight,
-//         })));
-//       };
-  
-//       const intervalId = setInterval(moveEmojis, 50);  // Faster interval
-//       return () => clearInterval(intervalId);
-//     } else {
-//       setMovingEmojis([]);
-//     }
-//   }, [darkMode]);
-      
+//   const renderContent = (text) => {
+//     const processedText = text.replace(/\\\(/g, '$').replace(/\\\)/g, '$')
+//                               .replace(/\\\[/g, '$$').replace(/\\\]/g, '$$');
+    
+//     return (
+//       <MathJaxContext config={mathJaxConfig}>
+//         <ReactMarkdown
+//           remarkPlugins={[remarkMath]}
+//           rehypePlugins={[rehypeRaw, rehypeKatex]}
+//           components={{
+//           h1: ({node, ...props}) => <h1 className="text-3xl font-bold my-4 text-gray-800" {...props} />,
+//           h2: ({node, ...props}) => <h2 className="text-2xl font-bold my-3 text-gray-800" {...props} />,
+//           h3: ({node, ...props}) => <h3 className="text-xl font-bold my-2 text-gray-800" {...props} />,
+//           h4: ({node, ...props}) => <h4 className="text-lg font-bold my-2 text-gray-800" {...props} />,
+//           p: ({node, ...props}) => <p className="my-2 text-gray-700" {...props} />,
+//           ul: ({node, ...props}) => <ul className="list-disc list-inside my-2 pl-4" {...props} />,
+//           ol: ({node, ...props}) => <ol className="list-decimal list-inside my-2 pl-4" {...props} />,
+//           li: ({node, ...props}) => <li className="my-1" {...props} />,
+//           a: ({node, ...props}) => <a className="text-blue-600 hover:underline" {...props} />,
+//           blockquote: ({node, ...props}) => <blockquote className="border-l-4 border-gray-300 pl-4 my-4 italic" {...props} />,
+//           table: ({node, ...props}) => <table className="w-full border-collapse border border-gray-300 my-4" {...props} />,
+//           th: ({node, ...props}) => <th className="border border-gray-300 p-2 bg-gray-100" {...props} />,
+//           td: ({node, ...props}) => <td className="border border-gray-300 p-2" {...props} />,
+//           code({node, inline, className, children, ...props}) {
+//             const match = /language-(\w+)/.exec(className || '');
+//             const codeString = String(children).replace(/\n$/, '');
+            
+//             if (!inline && match) {
+//               return (
+//                 <div className="relative">
+//                   <SyntaxHighlighter style={tomorrow} language={match[1]} PreTag="div" {...props}>
+//                     {codeString}
+//                   </SyntaxHighlighter>
+//                   <button
+//                     onClick={() => {
+//                       navigator.clipboard.writeText(codeString);
+//                       setCopiedCode(codeString);
+//                       setTimeout(() => setCopiedCode(null), 3000);
+//                     }}
+//                     className="absolute top-2 right-2 p-1 bg-gray-800 text-white rounded"
+//                   >
+//                     {copiedCode === codeString ? <Check size={16} /> : <Copy size={16} />}
+//                   </button>
+//                 </div>
+//               );
+//             } else {
+//               return <code className={`${className} bg-gray-100 rounded px-1`} {...props}>{children}</code>;
+//             }
+//           },
+//           p: ({children}) => {
+//             return <p>{React.Children.map(children, child => 
+//               typeof child === 'string' 
+//                 ? <MathJax inline={true}>{child}</MathJax>
+//                 : child
+//             )}</p>
+//           },
+//         }}
+//       >
+//         {processedText}
+//       </ReactMarkdown>
+//     </MathJaxContext>
+//   );
+// };
 
-
-  // const renderContent = (text) => {
-  //   const parts = text.split(/(\$\$[\s\S]*?\$\$|\$[\s\S]*?\$|<pre[\s\S]*?<\/pre>)/);
-  //   return parts.map((part, index) => {
-  //     if (part.startsWith("$$") && part.endsWith("$$")) {
-  //       return <MathJax key={index}>{`\\[${part.slice(2, -2)}\\]`}</MathJax>;
-  //     } else if (part.startsWith("$") && part.endsWith("$")) {
-  //       return <MathJax key={index}>{`\\(${part.slice(1, -1)}\\)`}</MathJax>;
-  //     } else if (part.startsWith("<pre") && part.endsWith("</pre>")) {
-  //       return (
-  //         <div
-  //           key={index}
-  //           dangerouslySetInnerHTML={sanitizeAndRenderContent(part)}
-  //         />
-  //       );
-  //     } else {
-  //       return (
-  //         <span key={index}>
-  //           {part.split("\n").map((line, i) => (
-  //             <React.Fragment key={i}>
-  //               {i > 0 && <br />}
-  //               <span
-  //                 dangerouslySetInnerHTML={sanitizeAndRenderContent(line)}
-  //               />
-  //             </React.Fragment>
-  //           ))}
-  //         </span>
-  //       );
-  //     }
-  //   });
-  // };
 
 //   const handleContentClick = (content) => {
 //     setSelectedContent(content);
 //     setUserAnswers({});
 //     setQuizSubmitted(false);
 //     setScore(0);
-//     setCurrentQuestionIndex(0);
-//     setShowExplanation(false);
-//     setSidebarOpen(false);
+//     setShowExplanation({});
 //   };
 
 //   const handleOptionSelect = (questionIndex, option) => {
 //     if (!quizSubmitted) {
 //       setUserAnswers((prev) => ({ ...prev, [questionIndex]: option }));
 //       const isCorrect = option === selectedContent.questions[questionIndex].correctAnswer;
-//       showAlert(
-//         isCorrect ? "Correct answer!" : "Wrong answer. Try again!",
-//         isCorrect ? "success" : "error"
-//       );
+//       showAlert(isCorrect ? "Correct answer!" : "Wrong answer. Try again!", isCorrect ? "success" : "error");
 //     }
 //   };
 
 //   const handleQuizSubmit = () => {
 //     let newScore = 0;
 //     selectedContent.questions.forEach((question, index) => {
-//       if (userAnswers[index] === question.correctAnswer) {
-//         newScore++;
-//       }
+//       if (userAnswers[index] === question.correctAnswer) newScore++;
 //     });
 //     setScore(newScore);
 //     setQuizSubmitted(true);
-//     if (newScore === selectedContent.questions.length) {
-//       confetti({
-//         particleCount: 100,
-//         spread: 70,
-//         origin: { y: 0.6 },
-//       });
-//     }
 //   };
 
 //   const renderQuizContent = () => {
@@ -194,23 +233,9 @@
 //     const filteredQuestions = selectedContent.questions.filter((question) =>
 //       question.question.toLowerCase().includes(quizSearchTerm.toLowerCase())
 //     );
-  
-//     const indexOfLastQuestion = currentPage * questionsPerPage;
-//     const indexOfFirstQuestion = indexOfLastQuestion - questionsPerPage;
-//     const currentQuestions = filteredQuestions.slice(indexOfFirstQuestion, indexOfLastQuestion);
-  
 //     return (
-//       <motion.div
-//         initial={{ opacity: 0, y: 20 }}
-//         animate={{ opacity: 1, y: 0 }}
-//         exit={{ opacity: 0, y: -20 }}
-//         className="bg-[#FEF3E2] p-6 rounded-lg shadow-lg"
-//         ref={quizContainerRef}
-//       >
-//         <h2 className="text-3xl font-bold mb-6 text-[#8B4513]">
-//           <BookOpen className="inline-block mr-2" />
-//           {selectedContent.title}
-//         </h2>
+//       <div className="bg-white p-6 rounded-lg shadow-md">
+//         <h2 className="text-2xl font-bold mb-6 text-gray-800">{selectedContent.title}</h2>
 //         <div className="mb-6">
 //           <div className="relative">
 //             <input
@@ -218,602 +243,697 @@
 //               placeholder="Search questions..."
 //               value={quizSearchTerm}
 //               onChange={(e) => setQuizSearchTerm(e.target.value)}
-//               className="w-full px-4 py-3 pr-10 border-2 border-[#D2691E] rounded-lg focus:outline-none focus:border-[#8B4513] transition-colors bg-[#FFDAB9]"
+//               className="w-full px-3 py-2 pr-8 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
 //             />
-//             <Search className="absolute right-3 top-3 text-[#8B4513]" />
+//             <Search className="absolute right-2 top-2.5 text-gray-400" size={18} />
 //           </div>
 //         </div>
-//         {currentQuestions.length > 0 ? (
+//         {filteredQuestions.length > 0 ? (
 //           <div>
-//             {currentQuestions.map((question, questionIndex) => (
-//               <motion.div
-//                 key={questionIndex}
-//                 initial={{ opacity: 0, y: 20 }}
-//                 animate={{ opacity: 1, y: 0 }}
-//                 transition={{ delay: questionIndex * 0.1 }}
-//                 className="mb-8 p-4 bg-[#FFDAB9] rounded-lg shadow-md"
-//               >
-//                 <p className="text-xl font-semibold text-[#8B4513] mb-4">
-//                   <span className="font-bold">
-//                     Question {indexOfFirstQuestion + questionIndex + 1}:
-//                   </span>{" "}
-//                   <MathJaxContext>
-//                     {renderContent(question.question)}
-//                   </MathJaxContext>
+//             {filteredQuestions.map((question, questionIndex) => (
+//               <div key={questionIndex} className="mb-8 p-4 bg-gray-50 rounded-lg">
+//                 <p className="text-lg font-semibold text-gray-800 mb-4">
+//                   <span className="font-bold">Question {questionIndex + 1}:</span> {renderContent(question.question)}
 //                 </p>
 //                 {question.image && (
-//                   <img
-//                     src={question.image}
-//                     alt={`Question ${indexOfFirstQuestion + questionIndex + 1}`}
-//                     className="mb-4 max-w-full h-auto rounded-lg shadow-md"
-//                   />
+//                   <img src={question.image} alt={`Question ${questionIndex + 1}`} className="mb-4 max-w-full h-auto rounded-lg shadow-sm" />
 //                 )}
-//                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+//                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
 //                   {["a", "b", "c", "d"].map((option, optionIndex) => (
-//                     <motion.button
+//                     <button
 //                       key={option}
-//                       whileHover={{ scale: 1.05 }}
-//                       whileTap={{ scale: 0.95 }}
-//                       onClick={() => handleOptionSelect(indexOfFirstQuestion + questionIndex, option)}
-//                       className={`p-4 rounded-lg text-left transition-colors relative ${
-//                         userAnswers[indexOfFirstQuestion + questionIndex] === option
-//                           ? "bg-[#D2691E] text-white"
-//                           : "bg-[#FFF5E6] text-[#8B4513] hover:bg-[#FFE4B5]"
+//                       onClick={() => handleOptionSelect(questionIndex, option)}
+//                       className={`p-3 rounded-lg text-left transition-colors ${
+//                         userAnswers[questionIndex] === option ? "bg-blue-600 text-white" : "bg-white text-gray-700 hover:bg-gray-100"
 //                       }`}
 //                     >
-//                       <span className="font-semibold mr-2">
-//                         {option.toUpperCase()}.
-//                       </span>
-//                       <MathJaxContext>
-//                         {renderContent(question.options[optionIndex])}
-//                       </MathJaxContext>
-//                     </motion.button>
+//                       <span className="font-semibold mr-2">{option.toUpperCase()}.</span>
+//                       {renderContent(question.options[optionIndex])}
+//                     </button>
 //                   ))}
 //                 </div>
-//                 <motion.button
-//                   whileHover={{ scale: 1.05 }}
-//                   whileTap={{ scale: 0.95 }}
-//                   onClick={() =>
-//                     setShowExplanation((prevState) => ({
-//                       ...prevState,
-//                       [indexOfFirstQuestion + questionIndex]: !prevState[indexOfFirstQuestion + questionIndex],
-//                     }))
-//                   }
-//                   className="mt-2 bg-[#D2691E] text-white px-4 py-2 rounded-lg hover:bg-[#8B4513] transition-colors"
+//                 <button
+//                   onClick={() => setShowExplanation((prev) => ({ ...prev, [questionIndex]: !prev[questionIndex] }))}
+//                   className="mt-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
 //                 >
-//                   {showExplanation[indexOfFirstQuestion + questionIndex] ? "Hide" : "Show"} Answer
-//                 </motion.button>
+//                   {showExplanation[questionIndex] ? "Hide" : "Show"} Answer
+//                 </button>
 //                 <AnimatePresence>
-//                   {showExplanation[indexOfFirstQuestion + questionIndex] && (
+//                   {showExplanation[questionIndex] && (
 //                     <motion.div
 //                       initial={{ opacity: 0, height: 0 }}
 //                       animate={{ opacity: 1, height: "auto" }}
 //                       exit={{ opacity: 0, height: 0 }}
-//                       className="mt-4 p-4 bg-[#FFF5E6] rounded-lg"
+//                       className="mt-4 p-4 bg-white rounded-lg border border-gray-200"
 //                     >
-//                       <h3 className="text-lg font-semibold text-[#8B4513] mb-2">
-//                         Correct Answer: {question.correctAnswer.toUpperCase()}
-//                       </h3>
-//                       <h3 className="text-lg font-semibold text-[#8B4513] mb-2">
-//                         Explanation:
-//                       </h3>
-//                       <MathJaxContext>
-//                         {renderContent(question.explanation)}
-//                       </MathJaxContext>
+//                       <h3 className="text-lg font-semibold text-gray-800 mb-2">Correct Answer: {question.correctAnswer.toUpperCase()}</h3>
+//                       <h3 className="text-lg font-semibold text-gray-800 mb-2">Explanation:</h3>
+//                       {renderContent(question.explanation)}
 //                     </motion.div>
 //                   )}
 //                 </AnimatePresence>
-//               </motion.div>
+//               </div>
 //             ))}
 //           </div>
 //         ) : (
-//           <p className="text-[#8B4513] text-lg">
-//             No matching questions found.
-//           </p>
+//           <p className="text-gray-700 text-lg">No matching questions found.</p>
 //         )}
-  
-//         {/* Pagination controls */}
-//         <div className="flex justify-between mt-6">
-//           <button
-//             onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-//             disabled={currentPage === 1}
-//             className="bg-[#D2691E] text-white px-4 py-2 rounded-lg hover:bg-[#8B4513] transition-colors disabled:opacity-50"
-//           >
-//             Previous
-//           </button>
-//           <span className="text-[#8B4513]">
-//             Page {currentPage} of {Math.ceil(filteredQuestions.length / questionsPerPage)}
-//           </span>
-//           <button
-//             onClick={() => setCurrentPage(prev => Math.min(prev + 1, Math.ceil(filteredQuestions.length / questionsPerPage)))}
-//             disabled={currentPage === Math.ceil(filteredQuestions.length / questionsPerPage)}
-//             className="bg-[#D2691E] text-white px-4 py-2 rounded-lg hover:bg-[#8B4513] transition-colors disabled:opacity-50"
-//           >
-//             Next
-//           </button>
-//         </div>
-//       </motion.div>
+//       </div>
 //     );
 //   };
+
 //   const renderNotesContent = () => {
 //     if (!selectedContent || selectedContent.type !== "notes") return null;
 //     return (
-//       <motion.div
-//         initial={{ opacity: 0, y: 20 }}
-//         animate={{ opacity: 1, y: 0 }}
-//         exit={{ opacity: 0, y: -20 }}
-//         className="bg-[#FEF3E2] p-8 rounded-lg shadow-lg"
-//       >
-//         <h2 className="text-3xl font-bold mb-6 text-[#8B4513]">
-//           <BookOpen className="inline-block mr-2" />
-//           {selectedContent.title}
-//         </h2>
-//         <div className="prose prose-lg max-w-none text-[#5D3A1A]">
-//           <MathJaxContext>
-//             {renderContent(selectedContent.description)}
-//           </MathJaxContext>
-//         </div>
-//         <p className="mt-8 text-sm text-[#D2691E]">
-//           Last updated:{" "}
-//           {new Date(selectedContent.lastUpdated).toLocaleDateString()}
-//         </p>
-//       </motion.div>
+//       <div className="bg-white p-6 rounded-lg shadow-md">
+//         <h2 className="text-2xl font-bold mb-6 text-gray-800">{selectedContent.title}</h2>
+//         <div className="prose max-w-none">{renderContent(selectedContent.description)}</div>
+//         <p className="mt-8 text-sm text-gray-500"> updated: {new Date(selectedContent.lastUpdated).toLocaleDateString()}</p>
+//       </div>
 //     );
 //   };
 
-//   const renderCarousel = (items, type) => (
-//     <Carousel
-//       showArrows={true}
-//       showStatus={false}
-//       showThumbs={false}
-//       infiniteLoop={true}
-//       autoPlay={true}
-//       interval={3000}
-//       className="mb-8"
-//     >
-//       {items.map((item) => (
-//         <motion.div
-//           key={item._id}
-//           whileHover={{ scale: 1.05 }}
-//           className="bg-[#FFF5E6] p-6 rounded-lg shadow-md cursor-pointer"
-//           onClick={() => navigate("/events", { state: { type, item } })}
-//         >
-//           <img
-//             src={type === "placement" ? item.logo : item.bannerLogoLink}
-//             alt={
-//               type === "placement"
-                // ? `${item.companyName} Logo`
-                // : `${item.instituteOrCompany} Banner`
-//             }
-//             className="w-full h-48 object-contain mb-4"
-//           />
-//           <h3 className="text-xl font-semibold text-[#8B4513]">
-//             {type === "placement" ? item.companyName : item.instituteOrCompany}
-//           </h3>
-//           <p className="text-[#D2691E]">
-//             {type === "placement" ? item.jobTitle : `${item.eventType} Event`}
-//           </p>
-//         </motion.div>
-//       ))}
-//     </Carousel>
-//   );
+//   if (loading) {
+//     return (
+//       <div className="flex justify-center items-center h-screen">
+//         <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
+//       </div>
+//     );
+//   }
 
 //   if (error) {
 //     return (
-//       <motion.div
-//         initial={{ opacity: 0 }}
-//         animate={{ opacity: 1 }}
-//         className="text-red-500 text-center mt-8 text-xl"
-//       >
+//       <div className="text-red-500 text-center mt-8 text-xl">
 //         {error}
-//       </motion.div>
-//     );
-//   }
-
-//   if (!category) {
-//     return (
-//       <div className="flex justify-center items-center mt-16">
-//         <TailSpin height="80" width="80" color="#8B4513" ariaLabel="loading" />
 //       </div>
 //     );
 //   }
-
-//   const filteredContent = Array.isArray(content)
-//   ? content.filter(item => 
-//       item.title.toLowerCase().includes(contentSearchTerm.toLowerCase())
-//     )
-//   : [];
 
 //   return (
-//     // <div className="bg-gradient-to-r from-[#FEF3E2] to-[#FFDAB9] min-h-screen">
-//     <div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-white' : 'bg-gradient-to-r from-[#FEF3E2] to-[#FFDAB9] text-gray-800'}`}>
-//     {darkMode && (
-//       <div className="fixed inset-0 pointer-events-none">
-//         {movingEmojis.map((emoji, index) => (
-//           <div
-//             key={index}
-//             className="absolute text-3xl"
-//             style={{ left: `${emoji.x}px`, top: `${emoji.y}px` }}
-//           >
-//             {emoji.emoji}
-//           </div>
-//         ))}
-//       </div>
-//     )}
-//     <div className="container mx-auto px-4 py-8">
-//       <div className="container mx-auto px-4 py-8">
-//         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-//           {/* Left Sidebar */}
-//           <AnimatePresence>
-//             {(sidebarOpen || window.innerWidth >= 768) && (
-//               <motion.div
-//                 initial={{ x: -300, opacity: 0 }}
-//                 animate={{ x: 0, opacity: 1 }}
-//                 exit={{ x: -300, opacity: 0 }}
-//                 transition={{ type: "spring", stiffness: 300, damping: 30 }}
-//                 className={`md:col-span-1 p-6 rounded-lg shadow-lg sticky top-20 ${
-//                   darkMode ? 'bg-gray-800' : 'bg-[#FFF5E6]'
-//                 }`}
-//               >
-//                 <h2 className="text-2xl font-semibold mb-4 text-[#8B4513]">
-//                   <BookOpen className="inline-block mr-2" />
-//                   Content
-//                 </h2>
-//                 <div className="mb-4">
-//                   <div className="relative">
-//                     <input
-//                       type="text"
-//                       placeholder="Search content..."
-//                       value={contentSearchTerm}
-//                       onChange={(e) => setContentSearchTerm(e.target.value)}
-//                       className="w-full px-4 py-2 pr-10 border-2 border-[#D2691E] rounded-md focus:outline-none focus:border-[#8B4513] transition-colors bg-[#FFDAB9]"
-//                     />
-//                     <Search className="absolute right-3 top-3 text-[#8B4513]" />
-//                   </div>
-//                 </div>
-//                 <div className="space-y-2">
-//                   {filteredContent.map((item, index) => (
-//                     <motion.button
-//                       key={index}
-//                       onClick={() => handleContentClick(item)}
-//                       whileHover={{ scale: 1.05 }}
-//                       whileTap={{ scale: 0.95 }}
-//                       className={`w-full text-left px-4 py-3 rounded-md transition-colors ${
-//                         selectedContent && selectedContent._id === item._id
-//                           ? "bg-[#D2691E] text-white"
-//                           : "bg-[#FFF5E6] text-[#8B4513] hover:bg-[#FFE4B5]"
-//                       }`}
-//                     >
-//                       {item.title}
-//                     </motion.button>
-//                   ))}
-//                 </div>
-//               </motion.div>
-//             )}
-//           </AnimatePresence>
-//           {/* Main Content */}
-//           <div className="md:col-span-2">
-//             <AnimatePresence mode="wait">
-//               {selectedContent ? (
-//                 selectedContent.type === "quiz" ? (
-//                   renderQuizContent()
+//     <MathJaxContext config={mathJaxConfig}>
+//       <div className="bg-gray-100 min-h-screen">
+//         <div className="container mx-auto px-4 py-8">
+//           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+//             <div className="md:col-span-1">
+//               {renderSidebar()}
+//             </div>
+//             <div className="md:col-span-3">
+//               <AnimatePresence mode="wait">
+//                 {selectedContent ? (
+//                   selectedContent.type === "quiz" ? (
+//                     renderQuizContent()
+//                   ) : (
+//                     renderNotesContent()
+//                   )
 //                 ) : (
-//                   renderNotesContent()
-//                 )
-//               ) : (
-//                 <motion.div
-//                   key="placeholder"
-//                   initial={{ opacity: 0, y: 20 }}
-//                   animate={{ opacity: 1, y: 0 }}
-//                   exit={{ opacity: 0, y: -20 }}
-//                   className="bg-[#FFF5E6] p-8 rounded-lg shadow-lg text-center"
-//                 >
-//                   <motion.h1
-//                     initial={{ x: -50, opacity: 0 }}
-//                     animate={{ x: 0, opacity: 1 }}
-//                     className="text-2xl font-bold text-[#8B4513]"
+//                   <motion.div
+//                     key="placeholder"
+//                     initial={{ opacity: 0, y: 20 }}
+//                     animate={{ opacity: 1, y: 0 }}
+//                     exit={{ opacity: 0, y: -20 }}
+//                     className="bg-white p-8 rounded-lg shadow-md text-center"
 //                   >
-//                     {category.title}
-//                   </motion.h1>
-//                   <motion.p
-//                     initial={{ x: -50, opacity: 0 }}
-//                     animate={{ x: 0, opacity: 1 }}
-//                     className="text-xl text-[#D2691E] mt-4"
-//                   >
-//                     {category.description}
-//                   </motion.p>
-//                 </motion.div>
-//               )}
-//             </AnimatePresence>
-//           </div>
-//           {/* Right Sidebar */}
-//           <div className="md:col-span-1">
-//             <motion.div
-//               initial={{ opacity: 0, y: 20 }}
-//               animate={{ opacity: 1, y: 0 }}
-//               className="bg-[#FFF5E6] p-6 rounded-lg shadow-lg mb-8"
-//             >
-//               <h2 className="text-2xl font-semibold mb-4 text-[#8B4513] flex items-center">
-//                 <Briefcase className="mr-2" />
-//                 Placements
-//               </h2>
-//               {renderCarousel(placements, "placement")}
-//             </motion.div>
-//             <motion.div
-//               initial={{ opacity: 0, y: 20 }}
-//               animate={{ opacity: 1, y: 0 }}
-//               className="bg-[#FFF5E6] p-6 rounded-lg shadow-lg"
-//             >
-//               <h2 className="text-2xl font-semibold mb-4 text-[#8B4513] flex items-center">
-//                 <Code className="mr-2" />
-//                 Hackathons
-//               </h2>
-//               {renderCarousel(hackathons, "hackathon")}
-//             </motion.div>
+//                     <h1 className="text-2xl font-bold text-gray-800 mb-4">{category.title}</h1>
+//                     <p className="text-lg text-gray-600">{category.description}</p>
+//                   </motion.div>
+//                 )}
+//               </AnimatePresence>
+//             </div>
 //           </div>
 //         </div>
+//         <AnimatePresence>
+//           {alertMessage && (
+//             <motion.div
+//               initial={{ opacity: 0, y: -50 }}
+//               animate={{ opacity: 1, y: 0 }}
+//               exit={{ opacity: 0, y: -50 }}
+//               className={`fixed top-4 right-4 p-4 rounded-lg shadow-lg ${
+//                 alertMessage.type === "success" ? "bg-green-500" : "bg-red-500"
+//               } text-white z-50`}
+//             >
+//               {alertMessage.text}
+//             </motion.div>
+//           )}
+//         </AnimatePresence>
 //       </div>
-//       {/* Mobile Menu Button */}
-//       <motion.button
-//         className={`md:hidden fixed bottom-4 right-4 text-white p-4 rounded-full shadow-lg z-50 ${
-//           darkMode ? 'bg-gray-700' : 'bg-[#D2691E]'
-//         }`}
-//         onClick={() => setSidebarOpen(!sidebarOpen)}
-//         whileHover={{ scale: 1.1 }}
-//         whileTap={{ scale: 0.9 }}
-//       >
-//         {sidebarOpen ? <X /> : <Menu />}
-//       </motion.button>
-//       {/* Alert Message */}
-//       <AnimatePresence>
-//         {alertMessage && (
-//           <motion.div
-//             initial={{ opacity: 0, y: -50 }}
-//             animate={{ opacity: 1, y: 0 }}
-//             exit={{ opacity: 0, y: -50 }}
-//             className={`fixed top-4 right-4 p-4 rounded-lg shadow-lg ${
-//               alertMessage.type === "success" ? "bg-[#8B4513]" : "bg-red-500"
-//             } text-white z-50 flex items-center`}
-//           >
-//             {alertMessage.type === "success" ? (
-//               <CheckCircle className="mr-2" />
-//             ) : (
-//               <XCircle className="mr-2" />
-//             )}
-//             {alertMessage.text}
-//           </motion.div>
-//         )}
-//       </AnimatePresence>
-//     </div>
-//     </div>
+//     </MathJaxContext>
 //   );
 // }
 
-// export default CategoryPage;
+// // export default CategoryPage;
 
-
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import DOMPurify from "dompurify";
 import { MathJax, MathJaxContext } from "better-react-mathjax";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, ChevronLeft, ChevronRight, Menu, X, CheckCircle, XCircle, Briefcase, Code, BookOpen, Award } from "lucide-react";
-import { Carousel } from "react-responsive-carousel";
-import "react-responsive-carousel/lib/styles/carousel.min.css";
+import config from '../../Config';
+import { Search, ChevronDown, ChevronUp, Copy, Check } from "lucide-react";
 import "tailwindcss/tailwind.css";
-import { TailSpin } from "react-loader-spinner";
-import confetti from "canvas-confetti";
-import config from "../../Config";
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { TextPlugin } from "gsap/TextPlugin";
-import LocomotiveScroll from "locomotive-scroll";
-
-gsap.registerPlugin(ScrollTrigger, TextPlugin);
+import ReactMarkdown from 'react-markdown';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { tomorrow } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import rehypeRaw from 'rehype-raw';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
+import 'katex/dist/katex.min.css';
 
 function CategoryPage() {
-  const { slug } = useParams();
+  const { slug,contentSlug } = useParams();
   const navigate = useNavigate();
   const [category, setCategory] = useState(null);
+  const [subcategories, setSubcategories] = useState([]);
   const [content, setContent] = useState([]);
   const [selectedContent, setSelectedContent] = useState(null);
   const [error, setError] = useState(null);
   const [contentSearchTerm, setContentSearchTerm] = useState("");
   const [quizSearchTerm, setQuizSearchTerm] = useState("");
-  const [placements, setPlacements] = useState([]);
-  const [hackathons, setHackathons] = useState([]);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [userAnswers, setUserAnswers] = useState({});
   const [quizSubmitted, setQuizSubmitted] = useState(false);
   const [score, setScore] = useState(0);
-  const quizContainerRef = useRef(null);
   const [showExplanation, setShowExplanation] = useState({});
   const [alertMessage, setAlertMessage] = useState(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const questionsPerPage = 15;
+  const [copiedCode, setCopiedCode] = useState(null);
+  const [expandedSubcategories, setExpandedSubcategories] = useState(() => {
+    const saved = localStorage.getItem('expandedSubcategories');
+    return saved ? JSON.parse(saved) : {};
+  });
+  const [loading, setLoading] = useState(true);
 
-  const scrollRef = useRef(null);
-  const titleRef = useRef(null);
-  const contentRef = useRef(null);
+  // useEffect(() => {
+  //   const fetchData = async () => {
+  //     try {
+  //       setLoading(true);
+  //       const categoryRes = await axios.get(`${config.backendUrl}/api/categories/slug/${slug}`);
+  //       setCategory(categoryRes.data);
+        
+  //       const subcategoriesRes = await axios.get(`${config.backendUrl}/api/subcategories/category/${categoryRes.data._id}`);
+  //       setSubcategories(subcategoriesRes.data);
+        
+  //       const contentRes = await axios.get(`${config.backendUrl}/api/content/category/${categoryRes.data._id}`);
+  //       setContent(contentRes.data);
+        
+  //       document.title = categoryRes.data.title;
+  //     } catch (error) {
+  //       console.error("Error fetching data:", error);
+  //       setError(error.response?.status === 404 ? "Category not found" : "An error occurred while fetching data");
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
+  //   fetchData();
+  // }, [slug]);
 
-  useEffect(() => {
-    if (!scrollRef.current) {
-      console.error('scrollRef is null');
-      return;
-    }
-  
-    const locoScroll = new LocomotiveScroll({
-      el: scrollRef.current,
-      smooth: true,
-      multiplier: 1,
-      class: 'is-revealed',
-    });
-  
-    ScrollTrigger.scrollerProxy(scrollRef.current, {
-      scrollTop(value) {
-        return arguments.length ? locoScroll.scrollTo(value, 0, 0) : locoScroll.scroll.instance.scroll.y;
-      },
-      getBoundingClientRect() {
-        return { top: 0, left: 0, width: window.innerWidth, height: window.innerHeight };
-      },
-    });
-  
-    locoScroll.on('scroll', ScrollTrigger.update);
-  
-    const ctx = gsap.context(() => {
-      if (titleRef.current) {
-        gsap.from(titleRef.current, {
-          y: 50,
-          opacity: 0,
-          duration: 1,
-          ease: "power3.out",
-        });
-      }
-  
-      if (contentRef.current) {
-        gsap.from(contentRef.current, {
-          y: 100,
-          opacity: 0,
-          duration: 1,
-          ease: "power3.out",
-          delay: 0.5,
-        });
-  
-        ScrollTrigger.create({
-          trigger: contentRef.current,
-          scroller: scrollRef.current,
-          start: "top bottom",
-          end: "bottom top",
-          animation: gsap.from(contentRef.current, {
-            y: 100,
-            opacity: 0,
-            duration: 1,
-            ease: "power3.out",
-          }),
-          once: true,
-        });
-      }
-    });
-  
-    return () => {
-      locoScroll.destroy();
-      ScrollTrigger.getAll().forEach((t) => t.kill());
-      ctx.revert();
-    };
-  }, []);
-  
+  // useEffect(() => {
+  //   const fetchData = async () => {
+  //     try {
+  //       setLoading(true);
+  //       const categoryRes = await axios.get(`${config.backendUrl}/api/categories/slug/${slug}`);
+  //       setCategory(categoryRes.data);
+        
+  //       const subcategoriesRes = await axios.get(`${config.backendUrl}/api/subcategories/category/${categoryRes.data._id}`);
+  //       setSubcategories(subcategoriesRes.data);
+        
+  //       const contentRes = await axios.get(`${config.backendUrl}/api/content/category/${categoryRes.data._id}`);
+  //       setContent(contentRes.data);
+        
+  //       document.title = categoryRes.data.title;
+
+  //       // If contentSlug is provided, find and set the selected content
+  //       if (contentSlug) {
+  //         const selectedContent = contentRes.data.find(item => 
+  //           item.title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') === contentSlug
+  //         );
+  //         if (selectedContent) {
+  //           setSelectedContent(selectedContent);
+  //         } else {
+  //           // Handle case when content is not found
+  //           setError("Content not found");
+  //         }
+  //       }
+  //     } catch (error) {
+  //       console.error("Error fetching data:", error);
+  //       setError(error.response?.status === 404 ? "Category not found" : "An error occurred while fetching data");
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
+  //   fetchData();
+  // }, [slug, contentSlug]);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [categoryRes, placementsRes, hackathonsRes] = await Promise.all([
-          axios.get(`${config.backendUrl}/api/categories/slug/${slug}`),
-          axios.get(`${config.backendUrl}/api/placements`),
-          axios.get(`${config.backendUrl}/api/hackathons`),
-        ]);
+        setLoading(true);
+        const categoryRes = await axios.get(`${config.backendUrl}/api/categories/slug/${slug}`);
         setCategory(categoryRes.data);
-        const contentRes = await axios.get(
-          `${config.backendUrl}/api/content/category/${categoryRes.data._id}`
-        );
+        
+        const subcategoriesRes = await axios.get(`${config.backendUrl}/api/subcategories/category/${categoryRes.data._id}`);
+        setSubcategories(subcategoriesRes.data);
+        
+        const contentRes = await axios.get(`${config.backendUrl}/api/content/category/${categoryRes.data._id}`);
         setContent(contentRes.data);
-        setPlacements(placementsRes.data);
-        setHackathons(hackathonsRes.data);
+        
         document.title = categoryRes.data.title;
+  
+        // Load expanded subcategories from localStorage
+        const savedExpanded = localStorage.getItem('expandedSubcategories');
+        if (savedExpanded) {
+          setExpandedSubcategories(JSON.parse(savedExpanded));
+        }
+  
+        if (contentSlug) {
+          const selectedContent = contentRes.data.find(item => 
+            item.title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') === contentSlug
+          );
+          if (selectedContent) {
+            setSelectedContent(selectedContent);
+            
+            // Expand the subcategory containing the selected content
+            const subcategory = subcategoriesRes.data.find(sub => sub._id === selectedContent.subcategory);
+            if (subcategory) {
+              setExpandedSubcategories(prev => ({
+                ...prev,
+                [subcategory._id]: true
+              }));
+            }
+          } else {
+            setError("Content not found");
+          }
+        }
       } catch (error) {
         console.error("Error fetching data:", error);
-        setError(
-          error.response?.status === 404
-            ? "Category not found"
-            : "An error occurred while fetching data"
-        );
+        setError(error.response?.status === 404 ? "Category not found" : "An error occurred while fetching data");
+      } finally {
+        setLoading(false);
       }
     };
     fetchData();
-  }, [slug]);
+  }, [slug, contentSlug]);
+  const toggleSubcategory = (subcategoryId) => {
+    setExpandedSubcategories(prev => {
+      const newState = { ...prev, [subcategoryId]: !prev[subcategoryId] };
+      localStorage.setItem('expandedSubcategories', JSON.stringify(newState));
+      return newState;
+    });
+  };
+
+  // const renderSidebar = () => (
+  //   <div className="bg-white p-4 rounded-lg shadow-md">
+  //     <h2 className="text-xl font-semibold mb-4 text-gray-800">Content</h2>
+  //     <div className="mb-4">
+  //       <div className="relative">
+  //         <input
+  //           type="text"
+  //           placeholder="Search content..."
+  //           value={contentSearchTerm}
+  //           onChange={(e) => setContentSearchTerm(e.target.value)}
+  //           className="w-full px-3 py-2 pr-8 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+  //         />
+  //         <Search className="absolute right-2 top-2.5 text-gray-400" size={18} />
+  //       </div>
+  //     </div>
+  //     <div className="space-y-2">
+  //       {subcategories.map((subcategory) => (
+  //         <div key={subcategory._id} className="border-b border-gray-200 pb-2">
+  //           <button
+  //             onClick={() => toggleSubcategory(subcategory._id)}
+  //             className="w-full flex justify-between items-center py-2 text-left text-gray-700 hover:text-blue-600 transition-colors"
+  //           >
+  //             <span>{subcategory.title}</span>
+  //             {expandedSubcategories[subcategory._id] ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+  //           </button>
+  //           <AnimatePresence>
+  //             {expandedSubcategories[subcategory._id] && (
+  //               <motion.div
+  //                 initial={{ opacity: 0, height: 0 }}
+  //                 animate={{ opacity: 1, height: "auto" }}
+  //                 exit={{ opacity: 0, height: 0 }}
+  //                 transition={{ duration: 0.3 }}
+  //               >
+  //                 {content
+  //                   .filter((item) => item.subcategory === subcategory._id)
+  //                   .filter((item) => item.title.toLowerCase().includes(contentSearchTerm.toLowerCase()))
+  //                   .map((item) => (
+  //                     <button
+  //                       key={item._id}
+  //                       onClick={() => handleContentClick(item)}
+  //                       className={`w-full text-left py-1 px-4 text-sm ${
+  //                         selectedContent && selectedContent._id === item._id
+  //                           ? "text-blue-600 font-semibold"
+  //                           : "text-gray-600 hover:text-blue-600"
+  //                       }`}
+  //                     >
+  //                       {item.title}
+  //                     </button>
+  //                   ))}
+  //               </motion.div>
+  //             )}
+  //           </AnimatePresence>
+  //         </div>
+  //       ))}
+  //     </div>
+  //   </div>
+  // );
+  
+  const renderSidebar = () => (
+    <div className="bg-white p-4 rounded-lg shadow-md">
+      <h2 className="text-xl font-semibold mb-4 text-gray-800">Content</h2>
+      <div className="mb-4">
+        <div className="relative">
+          <input
+            type="text"
+            placeholder="Search content..."
+            value={contentSearchTerm}
+            onChange={(e) => setContentSearchTerm(e.target.value)}
+            className="w-full px-3 py-2 pr-8 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+          />
+          <Search className="absolute right-2 top-2.5 text-gray-400" size={18} />
+        </div>
+      </div>
+      <div className="space-y-2">
+        {subcategories.map((subcategory) => (
+          <div key={subcategory._id} className="border-b border-gray-200 pb-2">
+            <button
+              onClick={() => toggleSubcategory(subcategory._id)}
+              className="w-full flex justify-between items-center py-2 text-left text-gray-700 hover:text-blue-600 transition-colors"
+            >
+              <span>{subcategory.title}</span>
+              {expandedSubcategories[subcategory._id] ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+            </button>
+            <AnimatePresence>
+              {expandedSubcategories[subcategory._id] && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  {content
+                    .filter((item) => item.subcategory === subcategory._id)
+                    .filter((item) => item.title.toLowerCase().includes(contentSearchTerm.toLowerCase()))
+                    .map((item) => (
+                      <button
+                        key={item._id}
+                        onClick={() => handleContentClick(item)}
+                        className={`w-full text-left py-1 px-4 text-sm ${
+                          selectedContent && selectedContent._id === item._id
+                            ? "text-blue-600 font-semibold"
+                            : "text-gray-600 hover:text-blue-600"
+                        }`}
+                      >
+                        {item.title}
+                      </button>
+                    ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+  const mathJaxConfig = {
+    loader: { load: ["input/tex", "output/svg"] },
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']],
+      displayMath: [['$$', '$$'], ['\\[', '\\]']],
+      processEscapes: true,
+    },
+    startup: {
+      typeset: false,
+    },
+  };
+  
+
 
   const showAlert = useCallback((text, type) => {
     setAlertMessage({ text, type });
-    setTimeout(() => {
-      setAlertMessage(null);
-    }, 3000);
+    setTimeout(() => setAlertMessage(null), 3000);
   }, []);
 
-  const sanitizeAndRenderContent = (htmlContent) => ({
-    __html: DOMPurify.sanitize(htmlContent, {
-      ADD_TAGS: ["math", "mrow", "mi", "mo", "mn", "msup", "mfrac", "img", "pre", "code"],
-      ADD_ATTR: ["display", "xmlns", "src", "alt", "class", "style"],
-    }),
-  });
+//   const renderContent = (text) => {
+//     const processedText = text.replace(/\\\(/g, '$').replace(/\\\)/g, '$')
+//                               .replace(/\\\[/g, '$$').replace(/\\\]/g, '$$');
+    
+//     return (
+//       <MathJaxContext config={mathJaxConfig}>
+//         <ReactMarkdown
+//           remarkPlugins={[remarkMath]}
+//           rehypePlugins={[rehypeRaw, rehypeKatex]}
+//           components={{
+//           h1: ({node, ...props}) => <h1 className="text-3xl font-bold my-4 text-gray-800" {...props} />,
+//           h2: ({node, ...props}) => <h2 className="text-2xl font-bold my-3 text-gray-800" {...props} />,
+//           h3: ({node, ...props}) => <h3 className="text-xl font-bold my-2 text-gray-800" {...props} />,
+//           h4: ({node, ...props}) => <h4 className="text-lg font-bold my-2 text-gray-800" {...props} />,
+//           p: ({node, ...props}) => <p className="my-2 text-gray-700" {...props} />,
+//           ul: ({node, ...props}) => <ul className="list-disc list-inside my-2 pl-4" {...props} />,
+//           ol: ({node, ...props}) => <ol className="list-decimal list-inside my-2 pl-4" {...props} />,
+//           li: ({node, ...props}) => <li className="my-1" {...props} />,
+//           a: ({node, ...props}) => <a className="text-blue-600 hover:underline" {...props} />,
+//           blockquote: ({node, ...props}) => <blockquote className="border-l-4 border-gray-300 pl-4 my-4 italic" {...props} />,
+//           table: ({node, ...props}) => <table className="w-full border-collapse border border-gray-300 my-4" {...props} />,
+//           th: ({node, ...props}) => <th className="border border-gray-300 p-2 bg-gray-100" {...props} />,
+//           td: ({node, ...props}) => <td className="border border-gray-300 p-2" {...props} />,
+//           code({node, inline, className, children, ...props}) {
+//             const match = /language-(\w+)/.exec(className || '');
+//             const codeString = String(children).replace(/\n$/, '');
+            
+//             if (!inline && match) {
+//               return (
+//                 <div className="relative">
+//                   <SyntaxHighlighter style={tomorrow} language={match[1]} PreTag="div" {...props}>
+//                     {codeString}
+//                   </SyntaxHighlighter>
+//                   <button
+//                     onClick={() => {
+//                       navigator.clipboard.writeText(codeString);
+//                       setCopiedCode(codeString);
+//                       setTimeout(() => setCopiedCode(null), 3000);
+//                     }}
+//                     className="absolute top-2 right-2 p-1 bg-gray-800 text-white rounded"
+//                   >
+//                     {copiedCode === codeString ? <Check size={16} /> : <Copy size={16} />}
+//                   </button>
+//                 </div>
+//               );
+//             } else {
+//               return <code className={`${className} bg-gray-100 rounded px-1`} {...props}>{children}</code>;
+//             }
+//           },
+//           p: ({children}) => {
+//             return <p>{React.Children.map(children, child => 
+//               typeof child === 'string' 
+//                 ? <MathJax inline={true}>{child}</MathJax>
+//                 : child
+//             )}</p>
+//           },
+//         }}
+//       >
+//         {processedText}
+//       </ReactMarkdown>
+//     </MathJaxContext>
+//   );
+// };
 
-  const renderContent = (text) => {
-    const parts = text.split(/(\$\$[\s\S]*?\$\$|\$[\s\S]*?\$|<pre[\s\S]*?<\/pre>)/);
-    return parts.map((part, index) => {
-      if (part.startsWith("$$") && part.endsWith("$$")) {
-        return <MathJax key={index}>{`\\[${part.slice(2, -2)}\\]`}</MathJax>;
-      } else if (part.startsWith("$") && part.endsWith("$")) {
-        return <MathJax key={index}>{`\\(${part.slice(1, -1)}\\)`}</MathJax>;
-      } else if (part.startsWith("<pre") && part.endsWith("</pre>")) {
-        return (
-          <div
-            key={index}
-            dangerouslySetInnerHTML={sanitizeAndRenderContent(part)}
-          />
-        );
-      } else {
-        return (
-          <span key={index}>
-            {part.split("\n").map((line, i) => (
-              <React.Fragment key={i}>
-                {i > 0 && <br />}
-                <span
-                  dangerouslySetInnerHTML={sanitizeAndRenderContent(line)}
-                />
-              </React.Fragment>
-            ))}
-          </span>
-        );
-      }
-    });
-  };
-  const handleContentClick = (content) => {
-    setSelectedContent(content);
-    setUserAnswers({});
-    setQuizSubmitted(false);
-    setScore(0);
-    setCurrentQuestionIndex(0);
-    setShowExplanation({});
-    setSidebarOpen(false);
-  };
+
+// const renderContent = (text) => {
+//   const processedText = text.replace(/\\\(/g, '$').replace(/\\\)/g, '$')
+//                             .replace(/\\\[/g, '$$').replace(/\\\]/g, '$$');
+  
+//   return (
+//     <MathJaxContext config={mathJaxConfig}>
+//       <ReactMarkdown
+//         remarkPlugins={[remarkMath]}
+//         rehypePlugins={[rehypeRaw, rehypeKatex]}
+//         components={{
+//           h1: ({node, ...props}) => <h1 className="text-3xl font-bold my-4 text-gray-800" {...props} />,
+//           h2: ({node, ...props}) => <h2 className="text-2xl font-bold my-3 text-gray-800" {...props} />,
+//           h3: ({node, ...props}) => <h3 className="text-xl font-bold my-2 text-gray-800" {...props} />,
+//           h4: ({node, ...props}) => <h4 className="text-lg font-bold my-2 text-gray-800" {...props} />,
+//           p: ({node, ...props}) => <p className="my-2 text-gray-700" {...props} />,
+//           ul: ({node, ...props}) => <ul className="list-disc list-inside my-2 pl-4" {...props} />,
+//           ol: ({node, ...props}) => <ol className="list-decimal list-inside my-2 pl-4" {...props} />,
+//           li: ({node, children, ...props}) => {
+//             // Check if the first child is plain text and starts with a number followed by a period
+//             if (typeof children[0] === 'string' && /^\d+\.\s/.test(children[0])) {
+//               // Split the text into number and content
+//               const [number, ...content] = children[0].split(/\s(.+)/);
+//               return (
+//                 <li className="my-1" {...props}>
+//                   <strong>{number}</strong> {content}
+//                   {children.slice(1)}
+//                 </li>
+//               );
+//             }
+//             return <li className="my-1" {...props}>{children}</li>;
+//           },
+//           a: ({node, ...props}) => <a className="text-blue-600 hover:underline" {...props} />,
+//           blockquote: ({node, ...props}) => <blockquote className="border-l-4 border-gray-300 pl-4 my-4 italic" {...props} />,
+//           table: ({node, ...props}) => <table className="w-full border-collapse border border-gray-300 my-4" {...props} />,
+//           th: ({node, ...props}) => <th className="border border-gray-300 p-2 bg-gray-100" {...props} />,
+//           td: ({node, ...props}) => <td className="border border-gray-300 p-2" {...props} />,
+//           code({node, inline, className, children, ...props}) {
+//             const match = /language-(\w+)/.exec(className || '');
+//             const codeString = String(children).replace(/\n$/, '');
+            
+//             if (!inline && match) {
+//               return (
+//                 <div className="relative">
+//                   <SyntaxHighlighter style={tomorrow} language={match[1]} PreTag="div" {...props}>
+//                     {codeString}
+//                   </SyntaxHighlighter>
+//                   <button
+//                     onClick={() => {
+//                       navigator.clipboard.writeText(codeString);
+//                       setCopiedCode(codeString);
+//                       setTimeout(() => setCopiedCode(null), 3000);
+//                     }}
+//                     className="absolute top-2 right-2 p-1 bg-gray-800 text-white rounded"
+//                   >
+//                     {copiedCode === codeString ? <Check size={16} /> : <Copy size={16} />}
+//                   </button>
+//                 </div>
+//               );
+//             } else {
+//               return <code className={`${className} bg-gray-100 rounded px-1`} {...props}>{children}</code>;
+//             }
+//           },
+//           p: ({children}) => {
+//             return <p>{React.Children.map(children, child => 
+//               typeof child === 'string' 
+//                 ? <MathJax inline={true}>{child}</MathJax>
+//                 : child
+//             )}</p>
+//           },
+//         }}
+//       >
+//         {processedText}
+//       </ReactMarkdown>
+//     </MathJaxContext>
+//   );
+// };
+
+
+const renderContent = (text) => {
+  const processedText = text.replace(/\\\(/g, '$').replace(/\\\)/g, '$')
+                            .replace(/\\\[/g, '$$').replace(/\\\]/g, '$$');
+  
+  return (
+    <MathJaxContext config={mathJaxConfig}>
+      <ReactMarkdown
+        remarkPlugins={[remarkMath]}
+        rehypePlugins={[rehypeRaw, rehypeKatex]}
+        components={{
+          h1: ({node, ...props}) => <h1 className="text-3xl font-bold my-4 text-gray-800" {...props} />,
+          h2: ({node, ...props}) => <h2 className="text-2xl font-bold my-3 text-gray-800" {...props} />,
+          h3: ({node, ...props}) => <h3 className="text-xl font-bold my-2 text-gray-800" {...props} />,
+          h4: ({node, ...props}) => <h4 className="text-lg font-bold my-2 text-gray-800" {...props} />,
+          p: ({node, children, ...props}) => {
+            // Check if the paragraph starts with a number followed by a period and bold text
+            const match = /^(\d+)\.\s+\*\*(.+?)\*\*/.exec(children[0]);
+            if (match) {
+              return (
+                <p className="my-2 text-gray-700" {...props}>
+                  <strong>{match[1]}. {match[2]}</strong>
+                  {children[0].slice(match[0].length)}
+                  {children.slice(1)}
+                </p>
+              );
+            }
+            return <p className="my-2 text-gray-700" {...props}>{children}</p>;
+          },
+          ul: ({node, ...props}) => <ul className="list-disc list-inside my-2 pl-4" {...props} />,
+          ol: ({node, ...props}) => <ol className="list-decimal list-inside my-2 pl-4" {...props} />,
+          li: ({node, children, ...props}) => {
+            // Check if the first child is plain text and starts with a number followed by a period
+            if (typeof children[0] === 'string' && /^\d+\.\s/.test(children[0])) {
+              // Split the text into number and content
+              const [number, ...content] = children[0].split(/\s(.+)/);
+              return (
+                <li className="my-1" {...props}>
+                  <strong>{number}</strong> {content}
+                  {children.slice(1)}
+                </li>
+              );
+            }
+            return <li className="my-1" {...props}>{children}</li>;
+          },
+          a: ({node, ...props}) => <a className="text-blue-600 hover:underline" {...props} />,
+          blockquote: ({node, ...props}) => <blockquote className="border-l-4 border-gray-300 pl-4 my-4 italic" {...props} />,
+          table: ({node, ...props}) => <table className="w-full border-collapse border border-gray-300 my-4" {...props} />,
+          th: ({node, ...props}) => <th className="border border-gray-300 p-2 bg-gray-100" {...props} />,
+          td: ({node, ...props}) => <td className="border border-gray-300 p-2" {...props} />,
+          code({node, inline, className, children, ...props}) {
+            const match = /language-(\w+)/.exec(className || '');
+            const codeString = String(children).replace(/\n$/, '');
+            
+            if (!inline && match) {
+              return (
+                <div className="relative">
+                  <SyntaxHighlighter style={tomorrow} language={match[1]} PreTag="div" {...props}>
+                    {codeString}
+                  </SyntaxHighlighter>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(codeString);
+                      setCopiedCode(codeString);
+                      setTimeout(() => setCopiedCode(null), 3000);
+                    }}
+                    className="absolute top-2 right-2 p-1 bg-gray-800 text-white rounded"
+                  >
+                    {copiedCode === codeString ? <Check size={16} /> : <Copy size={16} />}
+                  </button>
+                </div>
+              );
+            } else {
+              return <code className={`${className} bg-gray-100 rounded px-1`} {...props}>{children}</code>;
+            }
+          },
+          p: ({children}) => {
+            return <p>{React.Children.map(children, child => 
+              typeof child === 'string' 
+                ? <MathJax inline={true}>{child}</MathJax>
+                : child
+            )}</p>
+          },
+        }}
+      >
+        {processedText}
+      </ReactMarkdown>
+    </MathJaxContext>
+  );
+};
+const handleContentClick = (content) => {
+  setSelectedContent(content);
+  setUserAnswers({});
+  setQuizSubmitted(false);
+  setScore(0);
+  setShowExplanation({});
+  
+  // Update the URL with the content title
+  const newContentSlug = content.title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+  navigate(`/${slug}/${newContentSlug}`, { replace: true });
+};
+
+
 
   const handleOptionSelect = (questionIndex, option) => {
     if (!quizSubmitted) {
       setUserAnswers((prev) => ({ ...prev, [questionIndex]: option }));
       const isCorrect = option === selectedContent.questions[questionIndex].correctAnswer;
-      showAlert(
-        isCorrect ? "Correct answer!" : "Wrong answer. Try again!",
-        isCorrect ? "success" : "error"
-      );
+      showAlert(isCorrect ? "Correct answer!" : "Wrong answer. Try again!", isCorrect ? "success" : "error");
     }
   };
 
   const handleQuizSubmit = () => {
     let newScore = 0;
     selectedContent.questions.forEach((question, index) => {
-      if (userAnswers[index] === question.correctAnswer) {
-        newScore++;
-      }
+      if (userAnswers[index] === question.correctAnswer) newScore++;
     });
     setScore(newScore);
     setQuizSubmitted(true);
-    if (newScore === selectedContent.questions.length) {
-      confetti({
-        particleCount: 100,
-        spread: 70,
-        origin: { y: 0.6 },
-      });
-    }
   };
 
   const renderQuizContent = () => {
@@ -821,23 +941,9 @@ function CategoryPage() {
     const filteredQuestions = selectedContent.questions.filter((question) =>
       question.question.toLowerCase().includes(quizSearchTerm.toLowerCase())
     );
-  
-    const indexOfLastQuestion = currentPage * questionsPerPage;
-    const indexOfFirstQuestion = indexOfLastQuestion - questionsPerPage;
-    const currentQuestions = filteredQuestions.slice(indexOfFirstQuestion, indexOfLastQuestion);
-  
     return (
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -20 }}
-        className="bg-white p-6 rounded-lg shadow-lg"
-        ref={quizContainerRef}
-      >
-        <h2 className="text-3xl font-bold mb-6 text-red-800">
-          <BookOpen className="inline-block mr-2" />
-          {selectedContent.title}
-        </h2>
+      <div className="bg-white p-6 rounded-lg shadow-md">
+        <h2 className="text-2xl font-bold mb-6 text-gray-800">{selectedContent.title}</h2>
         <div className="mb-6">
           <div className="relative">
             <input
@@ -845,275 +951,101 @@ function CategoryPage() {
               placeholder="Search questions..."
               value={quizSearchTerm}
               onChange={(e) => setQuizSearchTerm(e.target.value)}
-              className="w-full px-4 py-3 pr-10 border-2 border-red-300 rounded-lg focus:outline-none focus:border-red-500 transition-colors bg-red-50"
+              className="w-full px-3 py-2 pr-8 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
             />
-            <Search className="absolute right-3 top-3 text-red-500" />
+            <Search className="absolute right-2 top-2.5 text-gray-400" size={18} />
           </div>
         </div>
-        {currentQuestions.length > 0 ? (
+        {filteredQuestions.length > 0 ? (
           <div>
-            {currentQuestions.map((question, questionIndex) => (
-              <motion.div
-                key={questionIndex}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: questionIndex * 0.1 }}
-                className="mb-8 p-4 bg-red-50 rounded-lg shadow-md"
-              >
-                <p className="text-xl font-semibold text-red-800 mb-4">
-                  <span className="font-bold">
-                    Question {indexOfFirstQuestion + questionIndex + 1}:
-                  </span>{" "}
-                  <MathJaxContext>
-                    {renderContent(question.question)}
-                  </MathJaxContext>
+            {filteredQuestions.map((question, questionIndex) => (
+              <div key={questionIndex} className="mb-8 p-4 bg-gray-50 rounded-lg">
+                <p className="text-lg font-semibold text-gray-800 mb-4">
+                  <span className="font-bold">Question {questionIndex + 1}:</span> {renderContent(question.question)}
                 </p>
                 {question.image && (
-                  <img
-                    src={question.image}
-                    alt={`Question ${indexOfFirstQuestion + questionIndex + 1}`}
-                    className="mb-4 max-w-full h-auto rounded-lg shadow-md"
-                  />
+                  <img src={question.image} alt={`Question ${questionIndex + 1}`} className="mb-4 max-w-full h-auto rounded-lg shadow-sm" />
                 )}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                   {["a", "b", "c", "d"].map((option, optionIndex) => (
-                    <motion.button
+                    <button
                       key={option}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={() => handleOptionSelect(indexOfFirstQuestion + questionIndex, option)}
-                      className={`p-4 rounded-lg text-left transition-colors relative ${
-                        userAnswers[indexOfFirstQuestion + questionIndex] === option
-                          ? "bg-red-500 text-white"
-                          : "bg-white text-red-800 hover:bg-red-100"
+                      onClick={() => handleOptionSelect(questionIndex, option)}
+                      className={`p-3 rounded-lg text-left transition-colors ${
+                        userAnswers[questionIndex] === option ? "bg-blue-600 text-white" : "bg-white text-gray-700 hover:bg-gray-100"
                       }`}
                     >
-                      <span className="font-semibold mr-2">
-                        {option.toUpperCase()}.
-                      </span>
-                      <MathJaxContext>
-                        {renderContent(question.options[optionIndex])}
-                      </MathJaxContext>
-                    </motion.button>
+                      <span className="font-semibold mr-2">{option.toUpperCase()}.</span>
+                      {renderContent(question.options[optionIndex])}
+                    </button>
                   ))}
                 </div>
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() =>
-                    setShowExplanation((prevState) => ({
-                      ...prevState,
-                      [indexOfFirstQuestion + questionIndex]: !prevState[indexOfFirstQuestion + questionIndex],
-                    }))
-                  }
-                  className="mt-2 bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors"
+                <button
+                  onClick={() => setShowExplanation((prev) => ({ ...prev, [questionIndex]: !prev[questionIndex] }))}
+                  className="mt-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
                 >
-                  {showExplanation[indexOfFirstQuestion + questionIndex] ? "Hide" : "Show"} Answer
-                </motion.button>
+                  {showExplanation[questionIndex] ? "Hide" : "Show"} Answer
+                </button>
                 <AnimatePresence>
-                  {showExplanation[indexOfFirstQuestion + questionIndex] && (
+                  {showExplanation[questionIndex] && (
                     <motion.div
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: "auto" }}
                       exit={{ opacity: 0, height: 0 }}
-                      className="mt-4 p-4 bg-red-100 rounded-lg"
+                      className="mt-4 p-4 bg-white rounded-lg border border-gray-200"
                     >
-                      <h3 className="text-lg font-semibold text-red-800 mb-2">
-                        Correct Answer: {question.correctAnswer.toUpperCase()}
-                      </h3>
-                      <h3 className="text-lg font-semibold text-red-800 mb-2">
-                        Explanation:
-                      </h3>
-                      <MathJaxContext>
-                        {renderContent(question.explanation)}
-                      </MathJaxContext>
+                      <h3 className="text-lg font-semibold text-gray-800 mb-2">Correct Answer: {question.correctAnswer.toUpperCase()}</h3>
+                      <h3 className="text-lg font-semibold text-gray-800 mb-2">Explanation:</h3>
+                      {renderContent(question.explanation)}
                     </motion.div>
                   )}
                 </AnimatePresence>
-              </motion.div>
+              </div>
             ))}
           </div>
         ) : (
-          <p className="text-red-800 text-lg">
-            No matching questions found.
-          </p>
+          <p className="text-gray-700 text-lg">No matching questions found.</p>
         )}
-  
-        {/* Pagination controls */}
-        <div className="flex justify-between mt-6">
-          <button
-            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-            disabled={currentPage === 1}
-            className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50"
-          >
-            Previous
-          </button>
-          <span className="text-red-800">
-            Page {currentPage} of {Math.ceil(filteredQuestions.length / questionsPerPage)}
-          </span>
-          <button
-            onClick={() => setCurrentPage(prev => Math.min(prev + 1, Math.ceil(filteredQuestions.length / questionsPerPage)))}
-            disabled={currentPage === Math.ceil(filteredQuestions.length / questionsPerPage)}
-            className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50"
-          >
-            Next
-          </button>
-        </div>
-      </motion.div>
+      </div>
     );
   };
 
   const renderNotesContent = () => {
     if (!selectedContent || selectedContent.type !== "notes") return null;
     return (
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -20 }}
-        className="bg-white p-8 rounded-lg shadow-lg"
-      >
-        <h2 className="text-3xl font-bold mb-6 text-red-800">
-          <BookOpen className="inline-block mr-2" />
-          {selectedContent.title}
-        </h2>
-        <div className="prose prose-lg max-w-none text-red-900">
-          <MathJaxContext>
-            {renderContent(selectedContent.description)}
-          </MathJaxContext>
-        </div>
-        <p className="mt-8 text-sm text-red-600">
-          Last updated:{" "}
-          {new Date(selectedContent.lastUpdated).toLocaleDateString()}
-        </p>
-      </motion.div>
+      <div className="bg-white p-6 rounded-lg shadow-md">
+        <h2 className="text-2xl font-bold mb-6 text-gray-800">{selectedContent.title}</h2>
+        <div className="prose max-w-none">{renderContent(selectedContent.description)}</div>
+        <p className="mt-8 text-sm text-gray-500"> updated: {new Date(selectedContent.lastUpdated).toLocaleDateString()}</p>
+      </div>
     );
   };
 
-  const renderCarousel = (items, type) => (
-    <Carousel
-      showArrows={true}
-      showStatus={false}
-      showThumbs={false}
-      infiniteLoop={true}
-      autoPlay={true}
-      interval={3000}
-      className="mb-8"
-    >
-      {items.map((item) => (
-        <motion.div
-          key={item._id}
-          whileHover={{ scale: 1.05 }}
-          className="bg-white p-6 rounded-lg shadow-md cursor-pointer"
-          onClick={() => navigate("/events", { state: { type, item } })}
-        >
-          <img
-            src={type === "placement" ? item.logo : item.bannerLogoLink}
-            alt={
-              type === "placement"
-                ? `${item.companyName} Logo`
-                : `${item.instituteOrCompany} Banner`
-            }
-            className="w-full h-48 object-contain mb-4"
-          />
-          <h3 className="text-xl font-semibold text-red-800">
-            {type === "placement" ? item.companyName : item.instituteOrCompany}
-          </h3>
-          <p className="text-red-600">
-            {type === "placement" ? item.jobTitle :`${item.eventType} Event`}
-          </p>
-        </motion.div>
-      ))}
-    </Carousel>
-  );
-
-  if (error) {
+  if (loading) {
     return (
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="text-red-500 text-center mt-8 text-xl"
-      >
-        {error}
-      </motion.div>
-    );
-  }
-
-  if (!category) {
-    return (
-      <div className="flex justify-center items-center mt-16">
-        <TailSpin height="80" width="80" color="#EF4444" ariaLabel="loading" />
+      <div className="flex justify-center items-center h-screen">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
       </div>
     );
   }
 
-  const filteredContent = Array.isArray(content)
-    ? content.filter(item => 
-        item.title.toLowerCase().includes(contentSearchTerm.toLowerCase())
-      )
-    : [];
+  if (error) {
+    return (
+      <div className="text-red-500 text-center mt-8 text-xl">
+        {error}
+      </div>
+    );
+  }
 
   return (
-    <div ref={scrollRef} className="smooth-scroll">
-      <div className="min-h-screen bg-gradient-to-br from-pink-100 to-red-100">
+    <MathJaxContext config={mathJaxConfig}>
+      <div className="bg-gray-100 min-h-screen">
         <div className="container mx-auto px-4 py-8">
-          <motion.h1
-            ref={titleRef}
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="text-4xl font-bold text-red-800 mb-8"
-          >
-            {category.title}
-          </motion.h1>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            {/* Left Sidebar */}
-            <AnimatePresence>
-              {(sidebarOpen || window.innerWidth >= 768) && (
-                <motion.div
-                  initial={{ x: -300, opacity: 0 }}
-                  animate={{ x: 0, opacity: 1 }}
-                  exit={{ x: -300, opacity: 0 }}
-                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                  className="md:col-span-1 p-6 rounded-lg shadow-lg sticky top-20 bg-white"
-                >
-                  <h2 className="text-2xl font-semibold mb-4 text-red-800">
-                    <BookOpen className="inline-block mr-2" />
-                    Content
-                  </h2>
-                  <div className="mb-4">
-                    <div className="relative">
-                      <input
-                        type="text"
-                        placeholder="Search content..."
-                        value={contentSearchTerm}
-                        onChange={(e) => setContentSearchTerm(e.target.value)}
-                        className="w-full px-4 py-2 pr-10 border-2 border-red-300 rounded-md focus:outline-none focus:border-red-500 transition-colors bg-red-50"
-                      />
-                      <Search className="absolute right-3 top-3 text-red-500" />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    {filteredContent.map((item, index) => (
-                      <motion.button
-                        key={index}
-                        onClick={() => handleContentClick(item)}
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        className={`w-full text-left px-4 py-3 rounded-md transition-colors ${
-                          selectedContent && selectedContent._id === item._id
-                            ? "bg-red-500 text-white"
-                            : "bg-red-50 text-red-800 hover:bg-red-100"
-                        }`}
-                      >
-                        {item.title}
-                      </motion.button>
-                    ))}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-            {/* Main Content */}
-            <div ref={contentRef} className="md:col-span-2">
+            <div className="md:col-span-1">
+              {renderSidebar()}
+            </div>
+            <div className="md:col-span-3">
               <AnimatePresence mode="wait">
                 {selectedContent ? (
                   selectedContent.type === "quiz" ? (
@@ -1127,56 +1059,16 @@ function CategoryPage() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -20 }}
-                    className="bg-white p-8 rounded-lg shadow-lg text-center"
+                    className="bg-white p-8 rounded-lg shadow-md text-center"
                   >
-                    <motion.p
-                      initial={{ x: -50, opacity: 0 }}
-                      animate={{ x: 0, opacity: 1 }}
-                      className="text-xl text-red-700 mt-4"
-                    >
-                      {category.description}
-                    </motion.p>
+                    <h1 className="text-2xl font-bold text-gray-800 mb-4">{category.title}</h1>
+                    <p className="text-lg text-gray-600">{category.description}</p>
                   </motion.div>
                 )}
               </AnimatePresence>
             </div>
-            {/* Right Sidebar */}
-            <div className="md:col-span-1">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="bg-white p-6 rounded-lg shadow-lg mb-8"
-              >
-                <h2 className="text-2xl font-semibold mb-4 text-red-800 flex items-center">
-                  <Briefcase className="mr-2" />
-                  Placements
-                </h2>
-                {renderCarousel(placements, "placement")}
-              </motion.div>
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="bg-white p-6 rounded-lg shadow-lg"
-              >
-                <h2 className="text-2xl font-semibold mb-4 text-red-800 flex items-center">
-                  <Code className="mr-2" />
-                  Hackathons
-                </h2>
-                {renderCarousel(hackathons, "hackathon")}
-              </motion.div>
-            </div>
           </div>
         </div>
-        {/* Mobile Menu Button */}
-        <motion.button
-          className="md:hidden fixed bottom-4 right-4 text-white p-4 rounded-full shadow-lg z-50 bg-red-500"
-          onClick={() => setSidebarOpen(!sidebarOpen)}
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-        >
-          {sidebarOpen ? <X /> : <Menu />}
-        </motion.button>
-        {/* Alert Message */}
         <AnimatePresence>
           {alertMessage && (
             <motion.div
@@ -1185,19 +1077,14 @@ function CategoryPage() {
               exit={{ opacity: 0, y: -50 }}
               className={`fixed top-4 right-4 p-4 rounded-lg shadow-lg ${
                 alertMessage.type === "success" ? "bg-green-500" : "bg-red-500"
-              } text-white z-50 flex items-center`}
+              } text-white z-50`}
             >
-              {alertMessage.type === "success" ? (
-                <CheckCircle className="mr-2" />
-              ) : (
-                <XCircle className="mr-2" />
-              )}
               {alertMessage.text}
             </motion.div>
           )}
         </AnimatePresence>
       </div>
-    </div>
+    </MathJaxContext>
   );
 }
 

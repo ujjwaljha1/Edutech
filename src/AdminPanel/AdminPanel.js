@@ -23,6 +23,16 @@ function AdminPanel() {
     type: "notes",
     questions: [],
   });
+  const [subcategories, setSubcategories] = useState([]);
+   const [selectedCategory, setSelectedCategory] = useState("");
+  const [newSubcategory, setNewSubcategory] = useState({
+    title: "",
+    description: "",
+    descriptionType: "normal",
+    categoryId: "",
+  });
+  const [editingSubcategory, setEditingSubcategory] = useState(null);
+  const [selectedCategoryType, setSelectedCategoryType] = useState("");
   const [editingContent, setEditingContent] = useState(null);
   const [showWarnings, setShowWarnings] = useState(false);
   const [quizEntryMethod, setQuizEntryMethod] = useState("manual");
@@ -47,6 +57,16 @@ function AdminPanel() {
     }
   };
 
+  const fetchSubcategories = async (categoryId) => {
+    if (!categoryId) return;
+    try {
+      const response = await axios.get(`${config.backendUrl}/api/subcategories/category/${categoryId}`);
+      setSubcategories(response.data);
+    } catch (error) {
+      console.error("Error fetching subcategories:", error);
+      setError("Failed to fetch subcategories. Please try again later.");
+    }
+  };
   const fetchContent = async () => {
     setIsLoading(true);
     setError(null);
@@ -75,6 +95,10 @@ function AdminPanel() {
       setNewContent((prev) => ({ ...prev, [name]: value }));
     } else if (target === "editingContent") {
       setEditingContent((prev) => ({ ...prev, [name]: value }));
+    } else if (target === "newSubcategory") {
+      setNewSubcategory((prev) => ({ ...prev, [name]: value }));
+    } else if (target === "editingSubcategory") {
+      setEditingSubcategory((prev) => ({ ...prev, [name]: value }));
     }
   };
 
@@ -128,6 +152,24 @@ function AdminPanel() {
     }
   };
 
+  const handleCategoryChange = (e) => {
+    const categoryId = e.target.value;
+    const category = categories.find(cat => cat._id === categoryId);
+    
+    handleInputChange(e, editingContent ? "editingContent" : "newContent");
+    fetchSubcategories(categoryId);
+    
+    if (category) {
+      setSelectedCategoryType(category.type);
+      setNewContent(prev => ({
+        ...prev,
+        categoryId: categoryId,
+        type: category.type
+      }));
+    }
+  };
+
+
   // const handleContentSubmit = async (e) => {
   //   e.preventDefault();
   //   try {
@@ -171,6 +213,89 @@ function AdminPanel() {
   //   }
   // };
 
+
+  const handleSubcategorySubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const subcategoryData = editingSubcategory || newSubcategory;
+      if (editingSubcategory) {
+        await axios.put(
+          `${config.backendUrl}/api/subcategories/${editingSubcategory._id}`,
+          subcategoryData
+        );
+        setEditingSubcategory(null);
+      } else {
+        await axios.post(`${config.backendUrl}/api/subcategories`, subcategoryData);
+        setNewSubcategory({
+          title: "",
+          description: "",
+          descriptionType: "normal",
+          categoryId: "",
+        });
+      }
+      fetchSubcategories(subcategoryData.categoryId);
+    } catch (error) {
+      console.error("Error submitting subcategory:", error);
+    }
+  };
+
+
+  // const handleContentSubmit = async (e) => {
+  //   e.preventDefault();
+  //   try {
+  //     const contentToSubmit = editingContent || newContent;
+      
+  //     let dataToSend = {
+  //       ...contentToSubmit,
+  //       category: contentToSubmit.categoryId,
+  //       description: processContent(contentToSubmit.description).content,
+  //     };
+
+  //     if (contentToSubmit.type === "quiz") {
+  //       if (quizEntryMethod === "json") {
+  //         try {
+  //           const parsedJson = JSON.parse(quizJson);
+  //           dataToSend.questions = parsedJson.map(q => ({
+  //             ...q,
+  //             question: processContent(q.question).content,
+  //             options: q.options.map(o => processContent(o).content),
+  //             explanation: processContent(q.explanation).content,
+  //           }));
+  //         } catch (jsonError) {
+  //           console.error("JSON parsing error:", jsonError);
+  //           alert("Error parsing JSON. Please check the format and try again.");
+  //           return;
+  //         }
+  //       } else {
+  //         dataToSend.questions = contentToSubmit.questions.map(q => ({
+  //           ...q,
+  //           question: processContent(q.question).content,
+  //           options: q.options.map(o => processContent(o).content),
+  //           explanation: processContent(q.explanation).content,
+  //         }));
+  //       }
+  //     }
+
+  //     if (editingContent) {
+  //       await axios.put(`${config.backendUrl}/api/content/${editingContent._id}`, dataToSend);
+  //       setEditingContent(null);
+  //     } else {
+  //       await axios.post(`${config.backendUrl}/api/content`, dataToSend);
+  //       setNewContent({
+  //         title: "",
+  //         description: "",
+  //         categoryId: "",
+  //         type: "notes",
+  //         questions: [],
+  //       });
+  //       setQuizJson("");
+  //     }
+  //     fetchContent();
+  //   } catch (error) {
+  //     console.error("Error submitting content:", error.response?.data || error.message);
+  //     alert("Error submitting content. Please try again.");
+  //   }
+  // };
   const handleContentSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -179,6 +304,7 @@ function AdminPanel() {
       let dataToSend = {
         ...contentToSubmit,
         category: contentToSubmit.categoryId,
+        subcategory: contentToSubmit.subcategoryId, // Ensure this line is present
         description: processContent(contentToSubmit.description).content,
       };
 
@@ -216,6 +342,7 @@ function AdminPanel() {
           title: "",
           description: "",
           categoryId: "",
+          subcategoryId: "",
           type: "notes",
           questions: [],
         });
@@ -223,10 +350,11 @@ function AdminPanel() {
       }
       fetchContent();
     } catch (error) {
-      console.error("Error submitting content:", error.response?.data || error.message);
+      console.error("Error submitting content:", error);
       alert("Error submitting content. Please try again.");
     }
   };
+
   
   const renderMathContent = (content) => (
     <MathJax.Context input="tex">
@@ -497,6 +625,16 @@ function AdminPanel() {
             Categories
           </button>
           <button
+            onClick={() => setActiveTab("subcategories")}
+            className={`px-4 py-2 rounded-lg ${
+              activeTab === "subcategories"
+                ? "bg-blue-500 text-white"
+                : "bg-gray-200 text-gray-700"
+            }`}
+          >
+            Subcategories
+          </button>
+          <button
             onClick={() => setActiveTab("content")}
             className={`px-4 py-2 rounded-lg ${
               activeTab === "content"
@@ -634,6 +772,109 @@ function AdminPanel() {
               </div>
             </motion.div>
           )}
+{activeTab === "subcategories" && (
+            <motion.div
+              key="subcategories"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              transition={{ duration: 0.3 }}
+            >
+              <h2 className="text-2xl font-semibold mb-4">
+                {editingSubcategory ? "Edit Subcategory" : "Add New Subcategory"}
+              </h2>
+              <form onSubmit={handleSubcategorySubmit} className="mb-8">
+                <select
+                  name="categoryId"
+                  value={editingSubcategory ? editingSubcategory.categoryId : newSubcategory.categoryId}
+                  onChange={(e) => handleInputChange(e, editingSubcategory ? "editingSubcategory" : "newSubcategory")}
+                  className="w-full px-3 py-2 border rounded-lg mb-4"
+                  required
+                >
+                  <option value="">Select Category</option>
+                  {categories.map((category) => (
+                    <option key={category._id} value={category._id}>
+                      {category.title}
+                    </option>
+                  ))}
+                </select>
+                <input
+                  type="text"
+                  name="title"
+                  value={editingSubcategory ? editingSubcategory.title : newSubcategory.title}
+                  onChange={(e) => handleInputChange(e, editingSubcategory ? "editingSubcategory" : "newSubcategory")}
+                  placeholder="Subcategory Title"
+                  className="w-full px-3 py-2 border rounded-lg mb-4"
+                  required
+                />
+                <textarea
+                  name="description"
+                  value={editingSubcategory ? editingSubcategory.description : newSubcategory.description}
+                  onChange={(e) => handleInputChange(e, editingSubcategory ? "editingSubcategory" : "newSubcategory")}
+                  placeholder="Subcategory Description"
+                  className="w-full px-3 py-2 border rounded-lg mb-4"
+                  required
+                />
+                <select
+                  name="descriptionType"
+                  value={editingSubcategory ? editingSubcategory.descriptionType : newSubcategory.descriptionType}
+                  onChange={(e) => handleInputChange(e, editingSubcategory ? "editingSubcategory" : "newSubcategory")}
+                  className="w-full px-3 py-2 border rounded-lg mb-4"
+                  required
+                >
+                  <option value="normal">Normal</option>
+                  <option value="html">HTML</option>
+                  <option value="markdown">Markdown</option>
+                </select>
+                <button
+                  type="submit"
+                  className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
+                >
+                  {editingSubcategory ? "Update Subcategory" : "Add Subcategory"}
+                </button>
+                {editingSubcategory && (
+                  <button
+                    onClick={() => setEditingSubcategory(null)}
+                    className="ml-2 bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600"
+                  >
+                    Cancel
+                  </button>
+                )}
+              </form>
+
+              <h3 className="text-xl font-semibold mb-4">Existing Subcategories</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {subcategories.map((subcategory) => (
+                  <motion.div
+                    key={subcategory._id}
+                    layout
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="bg-white shadow-md rounded-lg p-4"
+                  >
+                    <h4 className="text-lg font-semibold mb-2">{subcategory.title}</h4>
+                    <p className="text-gray-600 mb-2">{subcategory.description}</p>
+                    <p className="text-sm text-gray-500 mb-2">Description Type: {subcategory.descriptionType}</p>
+                    <div className="flex justify-end space-x-2">
+                      <button
+                        onClick={() => handleEdit(subcategory, "subcategory")}
+                        className="bg-yellow-500 text-white px-3 py-1 rounded-lg hover:bg-yellow-600"
+                      >
+                        <FaEdit />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(subcategory._id, "subcategory")}
+                        className="bg-red-500 text-white px-3 py-1 rounded-lg hover:bg-red-600"
+                      >
+                        <FaTrash />
+                      </button>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
+          )}
 
           {activeTab === "content" && (
             <motion.div
@@ -657,38 +898,31 @@ function AdminPanel() {
                 {showWarnings && renderWarnings()}
               </AnimatePresence>
               <form onSubmit={handleContentSubmit} className="mb-8">
+              <select
+  name="categoryId"
+  value={editingContent ? editingContent.categoryId : newContent.categoryId}
+  onChange={handleCategoryChange}
+  className="w-full px-3 py-2 border rounded-lg mb-4"
+  required
+>
+  <option value="">Select Category</option>
+  {categories.map((category) => (
+    <option key={category._id} value={category._id}>
+      {category.title}
+    </option>
+  ))}
+</select>
                 <select
-                  name="categoryId"
-                  value={editingContent ? editingContent.categoryId : newContent.categoryId}
-                  onChange={(e) => {
-                    handleInputChange(
-                      e,
-                      editingContent ? "editingContent" : "newContent"
-                    );
-                    const selectedCategory = categories.find(
-                      (cat) => cat._id === e.target.value
-                    );
-                    if (selectedCategory) {
-                      if (editingContent) {
-                        setEditingContent((prev) => ({
-                          ...prev,
-                          type: selectedCategory.type,
-                        }));
-                      } else {
-                        setNewContent((prev) => ({
-                          ...prev,
-                          type: selectedCategory.type,
-                        }));
-                      }
-                    }
-                  }}
+                  name="subcategoryId"
+                  value={editingContent ? editingContent.subcategoryId : newContent.subcategoryId}
+                  onChange={(e) => handleInputChange(e, editingContent ? "editingContent" : "newContent")}
                   className="w-full px-3 py-2 border rounded-lg mb-4"
                   required
                 >
-                  <option value="">Select Category</option>
-                  {categories.map((category) => (
-                    <option key={category._id} value={category._id}>
-                      {category.title}
+                  <option value="">Select Subcategory</option>
+                  {subcategories.map((subcategory) => (
+                    <option key={subcategory._id} value={subcategory._id}>
+                      {subcategory.title}
                     </option>
                   ))}
                 </select>
@@ -721,46 +955,46 @@ function AdminPanel() {
                   className="w-full px-3 py-2 border rounded-lg mb-4 h-64"
                   required
                 />
-                {(editingContent ? editingContent.type : newContent.type) === "quiz" && (
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Quiz Entry Method:
-                    </label>
-                    <div className="flex space-x-4">
-                      <label className="inline-flex items-center">
-                        <input
-                          type="radio"
-                          value="manual"
-                          checked={quizEntryMethod === "manual"}
-                          onChange={(e) => setQuizEntryMethod(e.target.value)}
-                          className="form-radio h-4 w-4 text-blue-600"
-                        />
-                        <span className="ml-2">Enter Manually</span>
-                      </label>
-                      <label className="inline-flex items-center">
-                        <input
-                          type="radio"
-                          value="json"
-                          checked={quizEntryMethod === "json"}
-                          onChange={(e) => setQuizEntryMethod(e.target.value)}
-                          className="form-radio h-4 w-4 text-blue-600"
-                        />
-                        <span className="ml-2">Upload JSON</span>
-                      </label>
-                    </div>
-                  </div>
-                )}
-                {(editingContent ? editingContent.type : newContent.type) === "quiz" &&
-                  quizEntryMethod === "json" ? (
-                  <textarea
-                    value={quizJson}
-                    onChange={(e) => setQuizJson(e.target.value)}
-                    placeholder="Paste your JSON here"
-                    className="w-full px-3 py-2 border rounded-lg mb-4 h-64"
-                    required
-                  />
-                ) : (editingContent ? editingContent.type : newContent.type) === "quiz" ? (
-                  <>
+             {selectedCategoryType === "quiz" && (
+  <div className="mb-4">
+    <label className="block text-sm font-medium text-gray-700 mb-2">
+      Quiz Entry Method:
+    </label>
+    <div className="flex space-x-4">
+      <label className="inline-flex items-center">
+        <input
+          type="radio"
+          value="manual"
+          checked={quizEntryMethod === "manual"}
+          onChange={(e) => setQuizEntryMethod(e.target.value)}
+          className="form-radio h-4 w-4 text-blue-600"
+        />
+        <span className="ml-2">Enter Manually</span>
+      </label>
+      <label className="inline-flex items-center">
+        <input
+          type="radio"
+          value="json"
+          checked={quizEntryMethod === "json"}
+          onChange={(e) => setQuizEntryMethod(e.target.value)}
+          className="form-radio h-4 w-4 text-blue-600"
+        />
+        <span className="ml-2">Upload JSON</span>
+      </label>
+    </div>
+  </div>
+)}
+
+{selectedCategoryType === "quiz" && quizEntryMethod === "json" ? (
+  <textarea
+    value={quizJson}
+    onChange={(e) => setQuizJson(e.target.value)}
+    placeholder="Paste your JSON here"
+    className="w-full px-3 py-2 border rounded-lg mb-4 h-64"
+    required
+  />
+) : selectedCategoryType === "quiz" ? (
+  <>
                     <input
                       type="number"
                       onChange={(e) => {

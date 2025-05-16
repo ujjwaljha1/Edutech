@@ -1,0 +1,62 @@
+[
+    {
+        "name": "Massachusetts Institute of Technology",
+        "location": "Cambridge, MA",
+        "type": "Private",
+        "website": "http://web.mit.edu/"
+    },
+    {
+        "name": "Stanford University",
+        "location": "Stanford, CA",
+        "type": "Private",
+        "website": "https://www.stanford.edu/"
+    },
+    {
+        "name": "Harvard University",
+        "location": "Cambridge, MA",
+        "type": "Private",
+        "website": "https://www.harvard.edu/"
+    },
+    {
+        "name": "California Institute of Technology",
+        "location": "Pasadena, CA",
+        "type": "Private",
+        "website": "https://www.caltech.edu/"
+    },
+    {
+        "name": "University of Chicago",
+        "location": "Chicago, IL",
+        "type": "Private",
+        "website": "https://www.uchicago.edu/"
+    },
+    {
+        "name": "Princeton University",
+        "location": "Princeton, NJ",
+        "type": "Private",
+        "website": "https://www.princeton.edu/"
+    },
+    {
+        "name": "Columbia University",
+        "location": "New York, NY",
+        "type": "Private",
+        "website": "https://www.columbia.edu/"
+    },
+    {
+        "name": "Yale University",
+        "location": "New Haven, CT",
+        "type": "Private",
+        "website": "https://www.yale.edu/"
+    },
+    {
+        "name": "University of California, Berkeley",
+        "location": "Berkeley, CA",
+        "type": "Public",
+        "website": "https://www.berkeley.edu/"
+    },
+    {
+        "name": "University of Oxford",
+        "location": "Oxford, England",
+        "type": "Public",
+        "website": "http://www.ox.ac.uk/"
+    }
+]
