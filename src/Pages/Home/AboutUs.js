@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Lottie from 'react-lottie';
-import animationData from 'E:/All In one/Final Setup/client/src/Pages/Home/Animation - 1722190040736.json';
+import animationData from './Animation - 1722190040736.json';
 import { FaLinkedin } from 'react-icons/fa';
 
 gsap.registerPlugin(ScrollTrigger);
