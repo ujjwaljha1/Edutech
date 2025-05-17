@@ -1,70 +1,71 @@
-# Getting Started with Create React App
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+## 🎨 Edutech Learning Platform — Frontend
 
-## Available Scripts
+🚀 **Your Friendly Neighborhood Interface** – Built with React and love. Here’s where your users click buttons, consume content, cry over quizzes, and (hopefully) learn something.
 
-In the project directory, you can run:
+🔗 Live Site: [edutech-project.netlify.app](https://edutech-project.netlify.app)
+🧠 Backend Repo: [Edutech Server](https://github.com/ujjwaljha1/Edutech-Website-Server.git)
 
-### `npm start`
+---
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+### ✨ What You’ll Find
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+* 👋 Beautiful onboarding & user profile screens
+* 🧾 Registration with email OTP (because security matters, yo)
+* 🚀 JWT-based login (just another token of our love)
+* 📚 Browse categories, take quizzes, and view premium content
+* 💳 Stripe-integrated premium subscription experience
+* 💬 In-app chat support for lonely users
+* 📝 Notes, blogs, and job placements – all in one place
+* 📅 Hackathon and event calendar for the caffeine-fueled coders
 
-### `npm test`
+---
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### ⚙️ Tech Stack
 
-### `npm run build`
+* Frontend: React.js + Tailwind CSS (because we’re stylish)
+* State Management: useContext & useReducer
+* Icons: Heroicons + FontAwesome
+* API Requests: Axios
+* Routing: React Router
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+---
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### 📦 Setup and Run Locally
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+```bash
+git clone https://github.com/ujjwaljha1/Edutech.git
+cd Edutech
+npm install
+npm start
+```
 
-### `npm run eject`
+---
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+### 🖼️ Folder Structure
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+```
+src/
+├── components/       # Reusable UI bits
+├── pages/            # Main pages (login, dashboard, etc.)
+├── context/          # App-wide state management
+├── utils/            # API functions and helpers
+└── assets/           # Images, fonts, vibes
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+---
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+### 💡 Pro Tips
 
-## Learn More
+* Always log out before switching roles (unless you like chaos)
+* Don’t forget to add your `.env` file with the API base URL
+* If Stripe breaks, blame capitalism
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+---
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+### 🤝 Contribution
 
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+1. Fork it like a pro
+2. `git checkout -b new-feature`
+3. Push your greatness
+4. Open a PR. Get showered in virtual applause
