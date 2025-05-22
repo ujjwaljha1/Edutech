@@ -1,9 +1,17 @@
 // src/components/Loader.js
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Lottie from 'lottie-react';
-import animationData from './Animation - 1722190040736.json';
 
 const Loader = () => {
+  const [animationData, setAnimationData] = useState(null);
+
+  useEffect(() => {
+    fetch(`${process.env.PUBLIC_URL}/animations/Animation - 1722190040736.json`)
+      .then(res => res.json())
+      .then(data => setAnimationData(data))
+      .catch(err => console.error('Failed to load Lottie animation:', err));
+  }, []);
+
   return (
     <div style={{
       position: 'fixed',
@@ -17,7 +25,9 @@ const Loader = () => {
       backgroundColor: 'rgba(255, 255, 255, 0.8)',
       zIndex: 9999
     }}>
-      <Lottie animationData={animationData} style={{ width: 200, height: 200 }} />
+      {animationData && (
+        <Lottie animationData={animationData} style={{ width: 200, height: 200 }} />
+      )}
     </div>
   );
 };
