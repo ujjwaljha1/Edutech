@@ -5,6 +5,7 @@ function Index() {
   return (
     <div>
       <Hero/>
+      
     </div>
   )
 }
