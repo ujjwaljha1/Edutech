@@ -57,9 +57,9 @@ function App() {
     return () => clearTimeout(timer);
   }, []);
 
-  if (loading) {
-    return <Loader />;
-  }
+  // if (loading) {
+  //   return <Loader />;
+  // }
 
   return (
     <Router>
@@ -81,9 +81,9 @@ function AppContent({ isAuthenticated, userRole }) {
     return () => clearTimeout(timer);
   }, [location]);
 
-  if (pageLoading) {
-    return <Loader />;
-  }
+  // if (pageLoading) {
+  //   return <Loader />;
+  // }
 
   const ProtectedRoute = ({ element, allowedRoles }) => {
     if (!isAuthenticated) {

@@ -200,7 +200,7 @@ const Hero = () => {
                 onClick={handleButtonClick}
                 className="px-8 py-3 bg-red-500 text-white rounded-full font-bold text-lg hover:bg-red-600 transition duration-300 ease-in-out shadow-xl relative overflow-hidden group"
               >
-                <span className="relative z-10">Start Your Adventure</span>
+                <span className="relative z-10">Start Your Learning</span>
                 <span className="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-300"></span>
               </button>
             </div>
