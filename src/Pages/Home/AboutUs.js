@@ -1,8 +1,7 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef,useState } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Lottie from 'react-lottie';
-import animationData from './Animation - 1722190040736.json';
 import { FaLinkedin } from 'react-icons/fa';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -12,6 +11,15 @@ const AboutUs = () => {
   const titleRef = useRef(null);
   const contentRef = useRef(null);
   const lottieRef = useRef(null);
+  const [animationData, setAnimationData] = useState(null);
+
+  useEffect(() => {
+    fetch(`${process.env.PUBLIC_URL}/animations/Animation-1722190040736.json`)
+      .then((res) => res.json())
+      .then((data) => setAnimationData(data))
+      .catch((err) => console.error('Failed to load animation:', err));
+  }, []);
+
 
   const teamMembers = [
     {

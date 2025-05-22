@@ -1,8 +1,8 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import { TextPlugin } from 'gsap/TextPlugin';
 import Lottie from 'lottie-react';
-import animationData from './Animation - 1722160135173.json';
+
 import { Bug, AlertTriangle, Lightbulb, Send } from 'lucide-react';
 
 gsap.registerPlugin(TextPlugin);
@@ -12,12 +12,21 @@ const BugReportSection = () => {
   const textRef = useRef(null);
   const reportItemsRef = useRef(null);
 
+  const [animationData, setAnimationData] = useState(null);
+
+  useEffect(() => {
+    fetch(`${process.env.PUBLIC_URL}/animations/Animation - 1722160135173.json`)
+      .then((res) => res.json())
+      .then((data) => setAnimationData(data))
+      .catch((err) => console.error('Failed to load animation:', err));
+  }, []);
+
   useEffect(() => {
     const ctx = gsap.context(() => {
       const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
 
-      tl.fromTo(sectionRef.current, 
-        { opacity: 0, y: 50 }, 
+      tl.fromTo(sectionRef.current,
+        { opacity: 0, y: 50 },
         { opacity: 1, y: 0, duration: 1 }
       );
 
@@ -53,8 +62,8 @@ const BugReportSection = () => {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col lg:flex-row items-center justify-between">
           <div className="w-full lg:w-1/2 mb-12 lg:mb-0">
-            <Lottie 
-              animationData={animationData} 
+            <Lottie
+              animationData={animationData}
               className="w-full max-w-md mx-auto"
             />
           </div>
@@ -79,7 +88,7 @@ const BugReportSection = () => {
                 <span className="text-lg text-red-700">Suggest improvements or new features</span>
               </div>
             </div>
-            <button 
+            <button
               onClick={handleReportClick}
               className="flex items-center justify-center px-8 py-3 bg-red-500 text-white rounded-full font-bold text-lg hover:bg-red-600 transition duration-300 ease-in-out shadow-xl w-full sm:w-auto"
             >
