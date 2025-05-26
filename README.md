@@ -1,4 +1,4 @@
-
+[![Netlify Status](https://api.netlify.com/api/v1/badges/226a2613-f5f0-4a8c-a8b4-2d6d31dced57/deploy-status)](https://app.netlify.com/projects/edutech-project/deploys)
 ## 🎨 Edutech Learning Platform — Frontend
 
 🚀 **Your Friendly Neighborhood Interface** – Built with React and love. Here’s where your users click buttons, consume content, cry over quizzes, and (hopefully) learn something.
