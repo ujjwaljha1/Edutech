@@ -25,6 +25,7 @@ import CouponGenerator from './CouponGenerator';
 import PremiumContentManager from './PremiumContentManager';
 import PremiumCategories from './PaidCategoryContent';
 import ChatSystem from './Pages/Chat/ChatSystem';
+import NoteAnnouncement from './Pages/NoteAnnouncement';
 
 axios.defaults.withCredentials = true;
 
@@ -97,6 +98,7 @@ function AppContent({ isAuthenticated, userRole }) {
 
   return (
     <div className="App">
+      <NoteAnnouncement/>
       <Navbar />
       <Notification/>
       <Routes>

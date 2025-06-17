@@ -97,13 +97,13 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="bg-gradient-to-r from-pink-100 to-red-100 p-4 sticky top-0 z-50 shadow-lg">
+    <nav className="bg-gradient-to-r from-pink-100 to-red-100 p-4 relative top-0 z-50 shadow-lg">
       <div className="container mx-auto">
         <div className="flex justify-between items-center">
           <Link to="/" className="text-2xl font-bold flex items-center transition-transform duration-300 hover:scale-105">
-            <img src="/path-to-your-logo.png" alt="LearnHub Logo" className="w-10 h-10 mr-2" />
+            <img src="/lovelylearn.png" alt="Lovely Logo" className="w-10 h-10 mr-2" />
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-red-500 to-yellow-500">
-              knowfinity
+              LovelyLearn
             </span>
           </Link>
 
